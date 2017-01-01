@@ -1,9 +1,11 @@
 import itertools
 import re
 import xml.etree.ElementTree as etree
+import os
 
 from dicttoxml import dicttoxml
 
+from poetry_corpus.settings import BASE_DIR
 from poetry_corpus.scripts.preprocess import to_cyrrilic, normilize_line
 
 
@@ -165,8 +167,9 @@ class Corpus:
 
 def main():
     corpus = Corpus()
-    text_files = ["datasets/strofa.xml", "datasets/klassika.xml", "datasets/rupoem.xml"]
-    themes_files = ["datasets/themes.xml",]
+    text_files = [os.path.join(BASE_DIR, "datasets", "strofa.xml"), os.path.join(BASE_DIR, "datasets", "klassika.xml"),
+                  os.path.join(BASE_DIR, "datasets", "rupoem.xml")]
+    themes_files = [os.path.join(BASE_DIR, "datasets", "themes.xml")]
     fields = {
         'name': {
             'path': './/name',
@@ -224,5 +227,6 @@ def main():
     print("Total authors: ", len(authors))
 
     # corpus.to_sketch("../datasets/all_sketch.xml", fields)
-    corpus.to_django("datasets/all_django.json", "datasets/themes_django.json", fields)
+    corpus.to_django(os.path.join(BASE_DIR, "datasets", "all_django.json"),
+                     os.path.join(BASE_DIR, "datasets", "themes_django.json"), fields)
 main()

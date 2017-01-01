@@ -3,17 +3,18 @@
 # Описание: Тесты к классификатору метра.
 
 import unittest
+import os
 
+from poetry_corpus.settings import BASE_DIR
 from poetry_corpus.scripts.phonetics.accent_dict import AccentDict
 from poetry_corpus.scripts.phonetics.phonetics import Phonetics
-
 from poetry_corpus.scripts.metre.metre_classifier import MetreClassifier
 
 
 class TestMetreClassifier(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict("../datasets/dicts/accents_dict.txt")
+        cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
 
     def test_metre_classifier(self):
 

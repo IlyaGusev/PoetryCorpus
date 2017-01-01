@@ -74,6 +74,7 @@
     </p>
     <p>Новые ударения: {% for item in additions %}<p>{{ item }}</p> {% endfor %}</p>
     <p>ML: {% for item in after_ml %}<p>{{ item }}</p> {% endfor %}</p>
+    <p>Рифмы: {% for item in rhymes %} <p>{{ item.0.text }} - {{ item.1.text }}</p>{% endfor %}</p>
 </div>
 {% endif %}
 

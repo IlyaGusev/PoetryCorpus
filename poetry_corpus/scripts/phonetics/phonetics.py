@@ -8,7 +8,7 @@ from poetry_corpus.scripts.preprocess import count_vowels, get_first_vowel_posit
 
 class Phonetics:
     """
-    Класс-механизм, содержащий методы для разметки ударений.
+    Класс-механизм для фонетического анализа слова.
     """
     @staticmethod
     def get_word_syllables(word):
@@ -88,6 +88,92 @@ class Phonetics:
                         if yo_pos != -1:
                             accents.append(yo_pos)
         return accents
+
+    @staticmethod
+    def get_word_transcription(word):
+        """
+        Фонетическая транскрипция слова на основе упорядоченного набора правил вида A->B,
+        где A и B - последовательности символов.
+
+        :param word: слово для разбора
+        :return phonetics: фонетическое слово
+        """
+        # TODO: Составление набора правил.
+        ruleset = {
+
+        }
+
+    @staticmethod
+    def get_rhyme_profile(word):
+        """
+        Получение профиля рифмовки (набора признаков для сопоставления)
+
+        :param word: уже акцентуированное слово (Word)
+        :return profile: профиль рифмовки
+        """
+        # TODO: Переход на фонетическое слово, больше признаков.
+        accented_char = ''
+        count_syllable = 0
+        prev_char = ''
+        next_char = ''
+        for syllable in reversed(word.syllables):
+            count_syllable += 1
+            if syllable.accent != -1:
+                accented_char = word.text[syllable.accent]
+                if syllable.accent-1 >= 0:
+                    prev_char = word.text[syllable.accent-1]
+                if syllable.accent+1 < len(word.text):
+                    next_char = word.text[syllable.accent+1]
+                break
+        return accented_char, count_syllable, next_char, prev_char
+
+    @staticmethod
+    def is_rhyme(word1, word2):
+        """
+        Проверка рифмованности 2 слов.
+
+        :param word1: первое слово для проверки рифмы, уже акцентуированное (Word)
+        :param word2: второе слово для проверки рифмы, уже акцентуированное (Word)
+        :return result: является рифмой или нет
+        """
+        features1 = Phonetics.get_rhyme_profile(word1)
+        features2 = Phonetics.get_rhyme_profile(word2)
+        count_equality = 0
+        for i in range(len(features1)):
+            if features1[i] == features2[i]:
+                count_equality += 1
+        return count_equality >= 3 and features1[0] == features2[0] and features1[1] == features2[1]
+
+    @staticmethod
+    def get_all_rhymes(markup):
+        """
+        Получение всех рифм в разметке
+
+        :param markup: разметка
+        :return result: словарь всех рифм
+        """
+        rhymes = {}
+        rhyme_candidates = []
+        for line in markup.lines:
+            if len(line.words) != 0:
+                rhyme_candidates.append(line.words[-1])
+        for i in range(len(rhyme_candidates)):
+            for j in range(i+1, len(rhyme_candidates)):
+                if Phonetics.is_rhyme(rhyme_candidates[i], rhyme_candidates[j]):
+                    word1 = rhyme_candidates[i].text
+                    word2 = rhyme_candidates[j].text
+                    if rhymes.get(word1) is None:
+                        rhymes[word1] = dict()
+                    if rhymes[word1].get(word2) is None:
+                        rhymes[word1][word2] = 0
+                    rhymes[word1][word2] += 1
+
+                    if rhymes.get(word2) is None:
+                        rhymes[word2] = dict()
+                    if rhymes[word2].get(word1) is None:
+                        rhymes[word2][word1] = 0
+                    rhymes[word2][word1] += 1
+        return rhymes
 
     @staticmethod
     def process_text(text, accents_dict):

@@ -3,7 +3,9 @@
 # Описание: Тесты для модуля классификации ударений.
 
 import unittest
+import os
 
+from poetry_corpus.settings import BASE_DIR
 from poetry_corpus.scripts.phonetics.accent_classifier import AccentClassifier
 from poetry_corpus.scripts.phonetics.accent_dict import AccentDict
 
@@ -11,8 +13,8 @@ from poetry_corpus.scripts.phonetics.accent_dict import AccentDict
 class TestAccentClassifier(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict("../datasets/dicts/accents_dict.txt")
-        cls.accent_classifier = AccentClassifier("../datasets/models", cls.accent_dict)
+        cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
+        cls.accent_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), cls.accent_dict)
 
     def test_accent_classifier(self):
         self.assertEqual(len([0, 2, 2, 1, 2, 2, 2, 1, 2]),

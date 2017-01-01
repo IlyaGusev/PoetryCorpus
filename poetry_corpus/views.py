@@ -18,10 +18,6 @@ from poetry_corpus.scripts.generate.markov import Markov
 
 accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
 accents_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accents_dict)
-markov = Markov()
-for poem in Poem.objects.all()[:]:
-    markov.add_text(str(poem.text))
-
 
 def get_name(poem):
     if poem.name == "":
@@ -93,6 +89,17 @@ class PoemView(DetailView):
         classifier.classify_metre()
         classifier.get_ml_results()
         markup = classifier.get_improved_markup()
+
+        rhymes = []
+        rhyme_candidates = []
+        for line in markup.lines:
+            rhyme_candidates.append(line.words[-1])
+        for i in range(len(rhyme_candidates)):
+            for j in range(i+1, len(rhyme_candidates)):
+                if Phonetics.is_rhyme(rhyme_candidates[i], rhyme_candidates[j]):
+                    rhymes.append((rhyme_candidates[i], rhyme_candidates[j]))
+
+        context['rhymes'] = rhymes
         context['text'] = process_markup(markup)
         context['classifier'] = classifier
         metre = classifier.result_metre
@@ -163,6 +170,6 @@ class GeneratorView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(GeneratorView, self).get_context_data(**kwargs)
-        context['generated'] = markov.generate_markov_text()
+        context['generated'] = markov.generate_poem()
         print(context['generated'])
         return context

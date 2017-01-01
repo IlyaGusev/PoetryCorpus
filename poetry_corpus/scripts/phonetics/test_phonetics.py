@@ -3,7 +3,9 @@
 # Описание: Тесты для модуля фонетики.
 
 import unittest
+import os
 
+from poetry_corpus.settings import BASE_DIR
 from poetry_corpus.scripts.phonetics.accent_dict import AccentDict
 from poetry_corpus.scripts.phonetics.phonetics import Phonetics
 from poetry_corpus.scripts.phonetics.phonetics_markup import Syllable, Word, Markup, Line
@@ -12,7 +14,7 @@ from poetry_corpus.scripts.phonetics.phonetics_markup import Syllable, Word, Mar
 class TestPhonetics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict("../datasets/dicts/accents_dict.txt")
+        cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
 
     def test_syllables(self):
         checks = {
@@ -62,6 +64,11 @@ class TestPhonetics(unittest.TestCase):
 
         for word, pos in checks.items():
             self.assertEqual(Phonetics.get_word_accent(word, self.accent_dict), pos)
+
+    def test_rhyme(self):
+        self.assertTrue(Phonetics.is_rhyme(Word(0, 4, "тишь", [Syllable(0, 4, 0, "тишь", 1)]),
+                                           Word(0, 8, "грустишь", [Syllable(0, 3, 0, "гру"),
+                                                                   Syllable(3, 8, 1, "стишь", 5)])))
 
     def test_process_text(self):
         text = "Соломка изжила себя.\n Пора виться майкой в."
