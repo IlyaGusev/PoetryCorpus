@@ -1,0 +1,8 @@
+datasets/dicts/accents_dict.txt filter=lfs diff=lfs merge=lfs -text
+datasets/all.xml filter=lfs diff=lfs merge=lfs -text
+datasets/all_django.json filter=lfs diff=lfs merge=lfs -text
+datasets/rupoem.xml filter=lfs diff=lfs merge=lfs -text
+datasets/strofa.xml filter=lfs diff=lfs merge=lfs -text
+datasets/themes.xml filter=lfs diff=lfs merge=lfs -text
+datasets/themes_django.json filter=lfs diff=lfs merge=lfs -text
+datasets/klassika.xml filter=lfs diff=lfs merge=lfs -text

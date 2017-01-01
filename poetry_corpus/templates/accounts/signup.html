@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load add_class %}
+{% load static from staticfiles %}
+{% block signup_active %} class="active" {% endblock %}
+{% block title %}Регистрация{% endblock %}
+{% block custom_head %}
+<script src="{% static 'js/signup.js' %}"></script>
+{% endblock %}
+{% block content %}
+   <div class="col-md-offset-3 col-md-6">
+        <form class="form-horizontal" id="signup_form" action="." method="post">
+            <div class="page-header"><h2 style="text-align: center;">Регистрация</h2></div>
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group row" id="group_{{field.name}}">
+                    <label class="control-label col-md-offset-1 col-md-3" for="{{field.id_for_label}}">{{ field.label }}</label>
+                    <div class="col-md-6">
+                        {{ field|add_class:"form-control" }}
+                        {{ field.errors }}
+                    </div>
+                </div>
+            {% endfor %}
+            {% if form.errors %}
+                {{ form.non_field_errors }}
+            {% endif %}
+            <div class="col-md-offset-3 col-md-6">
+                <button class="btn btn-block btn-primary" type="submit" id="subbutton">Зарегистрироваться</button>
+            </div>
+        </form>
+    </div>
+    <div style="clear: both"></div>
+{% endblock content %}

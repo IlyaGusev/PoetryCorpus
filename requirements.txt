@@ -1,0 +1,9 @@
+lxml
+cryptography
+scrapy >= 1.2
+dicttoxml
+Django
+numpy
+scipy
+scikit-learn
+django-reversion
