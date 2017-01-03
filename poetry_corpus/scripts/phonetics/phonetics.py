@@ -145,11 +145,12 @@ class Phonetics:
         return count_equality >= 3 and features1[0] == features2[0] and features1[1] == features2[1]
 
     @staticmethod
-    def get_all_rhymes(markup):
+    def get_all_rhymes(markup, short_words):
         """
         Получение всех рифм в разметке
 
         :param markup: разметка
+        :param short_words: сопоставление коротких версии слов в разметке с нормальными версиями.
         :return result: словарь всех рифм
         """
         rhymes = {}
@@ -159,20 +160,17 @@ class Phonetics:
                 rhyme_candidates.append(line.words[-1])
         for i in range(len(rhyme_candidates)):
             for j in range(i+1, len(rhyme_candidates)):
-                if Phonetics.is_rhyme(rhyme_candidates[i], rhyme_candidates[j]):
-                    word1 = rhyme_candidates[i]
-                    word2 = rhyme_candidates[j]
-                    if rhymes.get(word1) is None:
-                        rhymes[word1] = dict()
-                    if rhymes[word1].get(word2) is None:
-                        rhymes[word1][word2] = 0
-                    rhymes[word1][word2] += 1
-
-                    if rhymes.get(word2) is None:
-                        rhymes[word2] = dict()
-                    if rhymes[word2].get(word1) is None:
-                        rhymes[word2][word1] = 0
-                    rhymes[word2][word1] += 1
+                words = (rhyme_candidates[i], rhyme_candidates[j])
+                if Phonetics.is_rhyme(words[0], words[1]):
+                    shorts = (words[0].get_short(), words[1].get_short())
+                    short_words[shorts[0]] = words[0]
+                    short_words[shorts[1]] = words[1]
+                    for item in [shorts, tuple(reversed(shorts))]:
+                        if rhymes.get(item[0]) is None:
+                            rhymes[item[0]] = dict()
+                        if rhymes[item[0]].get(item[1]) is None:
+                            rhymes[item[0]][item[1]] = 0
+                        rhymes[item[0]][item[1]] += 1
         return rhymes
 
     @staticmethod
