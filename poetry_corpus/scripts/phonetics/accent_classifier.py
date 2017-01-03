@@ -7,6 +7,8 @@ import os
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import LinearSVC
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.externals import joblib
 from sklearn.model_selection import ShuffleSplit, cross_val_score
 
@@ -17,11 +19,10 @@ from poetry_corpus.scripts.phonetics.phonetics import Phonetics
 class AccentClassifier:
     # TODO: Рефакторинг.
     def __init__(self, model_dir, accents_dict):
-        n = 10
-        if not os.path.isfile(os.path.join(model_dir, "rf_" + str(n) + "_for_2.pickle")):
-            self.build_accent_classifiers(model_dir, n, accents_dict)
+        if not os.path.isfile(os.path.join(model_dir, "clf_2.pickle")):
+            self.build_accent_classifiers(model_dir, accents_dict)
         self.classifiers = {l: joblib.load(
-            os.path.join(model_dir, "rf_" + str(n) + "_for_" + str(l) + ".pickle")) for l in range(2, 13)}
+            os.path.join(model_dir, "clf_" + str(l) + ".pickle")) for l in range(2, 13)}
 
     def generate_sample(self, syllables):
         l = len(syllables)
@@ -34,7 +35,7 @@ class AccentClassifier:
                 features.append(sum([ch1 == ch2 for ch2 in text]))
         return features
 
-    def build_accent_classifiers(self, model_dir, n, accents_dict):
+    def build_accent_classifiers(self, model_dir, accents_dict):
         train_syllables = {k: [] for k in range(2, 13)}
         answers = {k: [] for k in range(2, 13)}
         for key, accents in accents_dict.data.items():
@@ -52,9 +53,9 @@ class AccentClassifier:
             train_data = []
             for syllables in train_syllables[l]:
                 train_data.append(self.generate_sample(syllables))
-            clf = RandomForestClassifier(n_estimators=n)
+            clf = DecisionTreeClassifier()
             clf.fit(train_data, answers[l])
-            joblib.dump(clf, os.path.join(model_dir, "rf_" + str(n) + "_for_" + str(l) + ".pickle"))
+            joblib.dump(clf, os.path.join(model_dir, "clf_" + str(l) + ".pickle"))
             cv = ShuffleSplit(2, test_size=0.2, random_state=10)
             cv_scores = cross_val_score(clf, train_data, answers[l], cv=cv, scoring='accuracy')
             print(str(l) + "Accuracy: %0.3f (+/- %0.3f)" % (cv_scores.mean(), cv_scores.std() * 2))

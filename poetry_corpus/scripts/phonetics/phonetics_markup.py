@@ -46,10 +46,10 @@ class CommonMixin(object):
         return hash(tuple(sorted(self.__dict__.items())))
 
     def __repr__(self):
-        return str(self.__dict__)
+        return str(self.to_dict())
 
     def __str__(self):
-        return str(self.__dict__)
+        return str(self.to_dict())
 
     def to_dict(self):
         return to_dict(self)
@@ -76,6 +76,19 @@ class Word(CommonMixin):
         self.end = end
         self.text = text
         self.syllables = syllables
+
+    def get_accent(self):
+        accent = -1
+        for syllable in self.syllables:
+            if syllable.accent != -1:
+                accent = syllable.accent
+        return accent
+
+    def get_short(self):
+        return self.text.lower() + str(self.get_accent())
+
+    def __hash__(self):
+        return hash(self.get_short())
 
 
 class Line(CommonMixin):

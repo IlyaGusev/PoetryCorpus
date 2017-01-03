@@ -160,8 +160,8 @@ class Phonetics:
         for i in range(len(rhyme_candidates)):
             for j in range(i+1, len(rhyme_candidates)):
                 if Phonetics.is_rhyme(rhyme_candidates[i], rhyme_candidates[j]):
-                    word1 = rhyme_candidates[i].text
-                    word2 = rhyme_candidates[j].text
+                    word1 = rhyme_candidates[i]
+                    word2 = rhyme_candidates[j]
                     if rhymes.get(word1) is None:
                         rhymes[word1] = dict()
                     if rhymes[word1].get(word2) is None:

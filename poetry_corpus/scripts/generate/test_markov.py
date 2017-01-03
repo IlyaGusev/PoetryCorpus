@@ -5,6 +5,8 @@
 import unittest
 import os
 import xml.etree.ElementTree as etree
+import pickle
+import json
 
 from poetry_corpus.settings import BASE_DIR
 from poetry_corpus.scripts.generate.markov import Markov
@@ -20,34 +22,27 @@ class TestMarkovChains(unittest.TestCase):
         cls.accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
         cls.accents_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), cls.accents_dict)
 
-    # def test_markov_add_and_generate(self):
-    #
-    #     text = "Горит восток зарёю новой.\n" \
-    #            "Уж на равнине, по холмам\n" \
-    #            "Грохочут пушки. Дым багровый\n" \
-    #            "Кругами всходит к небесам.\n" \
-    #            "Буря мглою небо кроет,\n" \
-    #            "Вихри снежные крутя;\n" \
-    #            "То, как зверь, она завоет,\n" \
-    #            "То заплачет, как дитя..."
-    #     markov1 = Markov(n_prev=1)
-    #     markov2 = Markov(n_prev=2)
-    #     markov1.add_text(text)
-    #     markov2.add_text(text)
-        # self.assertEqual(len(markov1.generate_markov_text(size=10).split(" ")), 10)
-        # self.assertEqual(len(markov1.generate_markov_text(size=10).split(" ")), 10)
-
     def test_generate(self):
-        markov = Markov(n_prev=1)
-        tree = etree.parse("datasets/all.xml")
-        root = tree.getroot()
-        for text in root.findall(".//text")[:2000]:
-            content = text.text
-            markup = Phonetics.process_text(content, self.accents_dict)
-            classifier = MetreClassifier(markup, self.accents_classifier)
-            classifier.classify_metre()
-            classifier.get_ml_results()
-            markup = classifier.get_improved_markup()
-            markov.add_text(markup)
-        for i in range(10):
-            print(markov.generate_poem())
+        dump_filename = os.path.join(BASE_DIR, "datasets", "markov.pickle")
+        if os.path.isfile(dump_filename):
+            with open(dump_filename, "rb") as f:
+                markov = pickle.load(f)
+        else:
+            markov = Markov()
+            tree = etree.parse(os.path.join(BASE_DIR, "datasets", "all.xml"))
+            root = tree.getroot()
+            for text in root.findall(".//text"):
+                content = text.text
+                markup = Phonetics.process_text(content, self.accents_dict)
+                classifier = MetreClassifier(markup, self.accents_classifier)
+                classifier.classify_metre()
+                classifier.get_ml_results()
+                markup = classifier.get_improved_markup()
+                markov.add_text(markup)
+            with open(dump_filename, "wb") as f:
+                pickle.dump(markov, f, pickle.HIGHEST_PROTOCOL)
+
+        print(markov.generate_poem(metre_schema="-+", rhyme_schema="abab", n_lines=4, n_syllables=8))
+        print(markov.generate_poem(metre_schema="-+", rhyme_schema="abab", n_lines=4, n_syllables=8))
+        print(markov.generate_poem(metre_schema="-+", rhyme_schema="ababcc", n_lines=6, n_syllables=10))
+        print(markov.generate_poem(metre_schema="-+", rhyme_schema="ababcc", n_lines=6, n_syllables=10))
