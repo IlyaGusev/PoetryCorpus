@@ -2,12 +2,13 @@ import os
 
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
-from django.views.generic import DetailView, ListView, TemplateView
+from django.views.generic import DetailView, ListView, TemplateView, FormView
 from django.core.exceptions import PermissionDenied
 
 import poetry_corpus
 from poetry_corpus.settings import BASE_DIR
 from poetry_corpus.models import Poem
+from poetry_corpus.forms import GeneratorForm
 from poetry_corpus.scripts.preprocess import VOWELS
 from poetry_corpus.scripts.phonetics.accent_classifier import AccentClassifier
 from poetry_corpus.scripts.phonetics.accent_dict import AccentDict
@@ -18,6 +19,7 @@ from poetry_corpus.scripts.generate.markov import Markov
 
 accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
 accents_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accents_dict)
+markov = Markov(accents_dict, accents_classifier)
 
 def get_name(poem):
     if poem.name == "":
@@ -165,11 +167,15 @@ class MarkupView(DetailView):
         return context
 
 
-class GeneratorView(TemplateView):
+class GeneratorView(FormView):
     template_name = "generator.html"
+    success_url = '/generator'
+    form_class = GeneratorForm
 
     def get_context_data(self, **kwargs):
         context = super(GeneratorView, self).get_context_data(**kwargs)
-        context['generated'] = markov.generate_poem()
-        print(context['generated'])
+        context['generated'] = markov.generate_poem(
+            self.request.GET.get('metre_schema', "-+"),
+            self.request.GET.get('rhyme_schema', "abab"),
+            int(self.request.GET.get('syllables_count', 8)))
         return context

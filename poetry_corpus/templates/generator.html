@@ -1,10 +1,27 @@
 {% extends "base.html" %}
-
+{% load add_class %}
 {% block content %}
 <div class="page-header">
     <h3>Генератор стихов</h3>
 </div>
 <div class="row">
-    <p>{{ generated }}</p>
+    <div class="col-lg-9">
+        <p class="text-center">{{ generated|linebreaksbr }}</p>
+    </div>
+    <div class="col-lg-3">
+         <form class="form-vertical" id="generator_form" action="./{{ form.as_url_args }}" method="get">
+            {% for field in form %}
+                <div class="form-group row" id="group_{{field.name}}">
+                    <label class="control-label" for="{{field.id_for_label}}">{{ field.label }}</label>
+                    {{ field|add_class:"form-control" }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            {% if form.errors %}
+                {{ form.non_field_errors }}
+            {% endif %}
+            <button class="btn btn-block btn-primary" type="submit" id="gen_button">Генерировать</button>
+        </form>
+    </div>
 </div>
 {% endblock %}ml>
