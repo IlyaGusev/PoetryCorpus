@@ -36,6 +36,7 @@ class AccentClassifier:
         return features
 
     def build_accent_classifiers(self, model_dir, accents_dict):
+        os.mkdir(model_dir)
         train_syllables = {k: [] for k in range(2, 13)}
         answers = {k: [] for k in range(2, 13)}
         for key, accents in accents_dict.data.items():
@@ -58,7 +59,7 @@ class AccentClassifier:
             joblib.dump(clf, os.path.join(model_dir, "clf_" + str(l) + ".pickle"))
             cv = ShuffleSplit(2, test_size=0.2, random_state=10)
             cv_scores = cross_val_score(clf, train_data, answers[l], cv=cv, scoring='accuracy')
-            print(str(l) + "Accuracy: %0.3f (+/- %0.3f)" % (cv_scores.mean(), cv_scores.std() * 2))
+            print(str(l) + " syllables. Accuracy: %0.3f (+/- %0.3f)" % (cv_scores.mean(), cv_scores.std() * 2))
             del clf
             del train_syllables[l]
             del answers[l]

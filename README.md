@@ -1,5 +1,7 @@
 # Поэтический корпус русского языка (учебный проект) #
 
+[![Build Status](https://travis-ci.org/IlyaGusev/PoetryCorpus.svg?branch=master)](https://travis-ci.org/IlyaGusev/PoetryCorpus)
+
 ### Установка ###
 ```
 sudo apt-get install build-essential libssl-dev libffi-dev python-dev libxslt1-dev libxslt1.1 libxml2-dev libxml2 libssl-dev

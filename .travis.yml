@@ -1,0 +1,15 @@
+dist: trusty
+sudo: required
+language: python
+python: 3.4
+before_install:
+- sudo apt-get install git-lfs
+- git lfs install
+before_script:
+- git lfs pull
+install:
+- pip install --upgrade pip setuptools wheel
+- pip install --only-binary=numpy,scipy numpy scipy
+- pip install -r requirements.txt
+script:
+- python3 manage.py test

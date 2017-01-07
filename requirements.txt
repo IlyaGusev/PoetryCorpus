@@ -3,7 +3,7 @@ cryptography
 scrapy >= 1.2
 dicttoxml
 Django
+django-reversion
 numpy
 scipy
-scikit-learn
-django-reversion
+scikit-learn == 0.18.0
