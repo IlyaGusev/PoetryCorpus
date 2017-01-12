@@ -77,7 +77,7 @@ class Markov(CommonMixin):
         self.generate_chain(list(reversed(words)), self.inverse_transitions)
 
         # Заполняем словарь рифм.
-        rhymes = Phonetics.get_all_rhymes(markup, self.short_words)
+        rhymes = Phonetics.get_all_rhymes(markup, self.short_words, border=5)
         for short1, mapping in rhymes.items():
             for short2, freq in mapping.items():
                 if self.rhymes.get(short1) is None:

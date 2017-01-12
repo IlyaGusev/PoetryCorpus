@@ -39,7 +39,10 @@ class TestPhonetics(unittest.TestCase):
             'дяденька': [Syllable(0, 2, 0, 'дя'), Syllable(2, 6, 1, 'день'), Syllable(6, 8, 2, 'ка')],
             'подъезд': [Syllable(0, 2, 0, 'по'), Syllable(2, 7, 1, 'дъезд')],
             'морские': [Syllable(0, 3, 0, 'мор'), Syllable(3, 6, 1, 'ски'), Syllable(6, 7, 2, 'е')],
-            'мерзкие': [Syllable(0, 3, 0, 'мер'), Syllable(3, 6, 1, 'зки'), Syllable(6, 7, 2, 'е')]
+            'мерзкие': [Syllable(0, 3, 0, 'мер'), Syllable(3, 6, 1, 'зки'), Syllable(6, 7, 2, 'е')],
+            'полный': [Syllable(0, 2, 0, 'по'), Syllable(2, 6, 1, 'лный')],
+            'зародыш': [Syllable(0, 2, 0, 'за'), Syllable(2, 4, 1, 'ро'), Syllable(4, 7, 2, 'дыш')],
+            'война': [Syllable(0, 3, 0, 'вой'), Syllable(3, 5, 1, 'на')],
         }
 
         for word, borders in checks.items():
@@ -69,6 +72,10 @@ class TestPhonetics(unittest.TestCase):
         self.assertTrue(Phonetics.is_rhyme(Word(0, 4, "тишь", [Syllable(0, 4, 0, "тишь", 1)]),
                                            Word(0, 8, "грустишь", [Syllable(0, 3, 0, "гру"),
                                                                    Syllable(3, 8, 1, "стишь", 5)])))
+        self.assertFalse(Phonetics.is_rhyme(Word(0, 8, "наизусть", [Syllable(0, 2, 0, "на"), Syllable(2, 4, 1, "из"),
+                                                                   Syllable(4, 8, 2, "усть", 4)]),
+                                            Word(0, 6, "сестра", [Syllable(0, 3, 0, "сест"),
+                                                                 Syllable(3, 6, 1, "ра", 5)])))
 
     def test_process_text(self):
         text = "Соломка изжила себя.\n Пора виться майкой в."

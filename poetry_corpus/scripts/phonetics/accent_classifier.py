@@ -36,7 +36,8 @@ class AccentClassifier:
         return features
 
     def build_accent_classifiers(self, model_dir, accents_dict):
-        os.mkdir(model_dir)
+        if not os.path.exists(model_dir):
+            os.mkdir(model_dir)
         train_syllables = {k: [] for k in range(2, 13)}
         answers = {k: [] for k in range(2, 13)}
         for key, accents in accents_dict.data.items():

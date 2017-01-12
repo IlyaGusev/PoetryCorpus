@@ -27,12 +27,14 @@ class Phonetics:
                     if i+2 < len(word)-1 and word[i+2] in "ьЬ":
                         # Если после закрывающего согласного идёт мягкий знак, заканчиваем на нём. ("бань-ка")
                         end = i+3
-                    elif i+2 < len(word)-1 and word[i+2] not in VOWELS and word[i+1] != word[i+2]:
-                        # Если после закрывающего согласного не идёт гласная или такая же согласная,
-                        # слог закрывается на этой согласной. ("май-ка")
+                    elif i+2 < len(word)-1 and word[i+2] not in VOWELS and \
+                            (word[i+2] not in CLOSED_SYLLABLE_CHARS or word[i+1] == "й"):
+                        # Если после закрывающего согласного не идёт гласная или другой закрывающий согласный,
+                        # слог закрывается на этом согласном. ("май-ка")
                         end = i+2
                     else:
-                        # Несмотря на наличие закрывающего согласного, заканчиваем на гласной. ("со-ло", "да-нный")
+                        # Несмотря на наличие закрывающего согласного, заканчиваем на гласной.
+                        # ("со-ло", "да-нный", "пол-ный")
                         end = i+1
                 else:
                     # Если после гласной идёт не закрывающая согласная, заканчиваем на гласной. ("ко-гда")
@@ -112,46 +114,60 @@ class Phonetics:
         :return profile: профиль рифмовки
         """
         # TODO: Переход на фонетическое слово, больше признаков.
-        accented_char = ''
-        count_syllable = 0
-        prev_char = ''
+        syllable_number = 0
+        accented_syllable = ''
+        next_syllable = ''
         next_char = ''
-        for syllable in reversed(word.syllables):
-            count_syllable += 1
+        syllables = list(reversed(word.syllables))
+        for i in range(len(syllables)):
+            syllable = syllables[i]
             if syllable.accent != -1:
-                accented_char = word.text[syllable.accent]
-                if syllable.accent-1 >= 0:
-                    prev_char = word.text[syllable.accent-1]
+                if i != 0:
+                    next_syllable = syllables[i-1].text
+                accented_syllable = syllables[i].text
                 if syllable.accent+1 < len(word.text):
                     next_char = word.text[syllable.accent+1]
+                syllable_number = i
                 break
-        return accented_char, count_syllable, next_char, prev_char
+        return syllable_number, accented_syllable, next_syllable, next_char
 
     @staticmethod
-    def is_rhyme(word1, word2):
+    def is_rhyme(word1, word2, score_border=4, syllable_number_border=2):
         """
         Проверка рифмованности 2 слов.
 
         :param word1: первое слово для проверки рифмы, уже акцентуированное (Word)
         :param word2: второе слово для проверки рифмы, уже акцентуированное (Word)
+        :param score_border: граница определния рифмы, чем выше, тем строже совпадение
+        :param syllable_number_border: ограничение на номер слога с конца, на который падает ударение
         :return result: является рифмой или нет
         """
         features1 = Phonetics.get_rhyme_profile(word1)
         features2 = Phonetics.get_rhyme_profile(word2)
         count_equality = 0
-        for i in range(len(features1)):
-            if features1[i] == features2[i]:
-                count_equality += 1
-        return count_equality >= 3 and features1[0] == features2[0] and features1[1] == features2[1]
+        for i in range(len(features1[1])):
+            for j in range(i, len(features2[1])):
+                if features1[1][i] == features2[1][j]:
+                    if features1[1][i] in VOWELS:
+                        count_equality += 3
+                    else:
+                        count_equality += 1
+        if features1[2] == features2[2] and features1[2] != '':
+            count_equality += 2
+        elif features1[3] == features2[3] and features1[3] != '':
+            count_equality += 1
+        return features1[0] == features2[0] and count_equality >= score_border and \
+               features1[0] <= syllable_number_border
 
     @staticmethod
-    def get_all_rhymes(markup, short_words):
+    def get_all_rhymes(markup, short_words, border=4):
         """
         Получение всех рифм в разметке
 
         :param markup: разметка
         :param short_words: сопоставление коротких версии слов в разметке с нормальными версиями.
-        :return result: словарь всех рифм
+        :param border: граница определния рифмы, чем выше, тем строже совпадение
+        :return result: словарь всех рифм, в коротком предсатвлении
         """
         rhymes = {}
         rhyme_candidates = []
@@ -161,7 +177,7 @@ class Phonetics:
         for i in range(len(rhyme_candidates)):
             for j in range(i+1, len(rhyme_candidates)):
                 words = (rhyme_candidates[i], rhyme_candidates[j])
-                if Phonetics.is_rhyme(words[0], words[1]):
+                if Phonetics.is_rhyme(words[0], words[1], border):
                     shorts = (words[0].get_short(), words[1].get_short())
                     short_words[shorts[0]] = words[0]
                     short_words[shorts[1]] = words[1]

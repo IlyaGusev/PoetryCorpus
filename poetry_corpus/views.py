@@ -92,14 +92,7 @@ class PoemView(DetailView):
         classifier.get_ml_results()
         markup = classifier.get_improved_markup()
 
-        rhymes = []
-        rhyme_candidates = []
-        for line in markup.lines:
-            rhyme_candidates.append(line.words[-1])
-        for i in range(len(rhyme_candidates)):
-            for j in range(i+1, len(rhyme_candidates)):
-                if Phonetics.is_rhyme(rhyme_candidates[i], rhyme_candidates[j]):
-                    rhymes.append((rhyme_candidates[i], rhyme_candidates[j]))
+        rhymes = Phonetics.get_all_rhymes(markup, {}, 4)
 
         context['rhymes'] = rhymes
         context['text'] = process_markup(markup)
@@ -176,6 +169,6 @@ class GeneratorView(FormView):
         context = super(GeneratorView, self).get_context_data(**kwargs)
         context['generated'] = markov.generate_poem(
             self.request.GET.get('metre_schema', "-+"),
-            self.request.GET.get('rhyme_schema', "abab"),
+            self.request.GET.get('rhyme_schema', "aabb"),
             int(self.request.GET.get('syllables_count', 8)))
         return context
