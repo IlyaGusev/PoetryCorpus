@@ -2,7 +2,7 @@ import xml.etree.ElementTree as etree
 import codecs
 from math import log, sqrt
 
-from poetry_corpus.scripts.preprocess import text_to_wordlist
+from poetry_corpus.apps.corpus.scripts.preprocess import text_to_wordlist
 
 
 def collectNgrams():

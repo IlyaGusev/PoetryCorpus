@@ -6,9 +6,9 @@ import unittest
 import os
 
 from poetry_corpus.settings import BASE_DIR
-from poetry_corpus.scripts.generate.markov import Markov
-from poetry_corpus.scripts.phonetics.accent_classifier import AccentClassifier
-from poetry_corpus.scripts.phonetics.accent_dict import AccentDict
+from poetry_corpus.apps.corpus.scripts.generate.markov import Markov
+from poetry_corpus.apps.corpus.scripts.phonetics.accent_classifier import AccentClassifier
+from poetry_corpus.apps.corpus.scripts.phonetics.accent_dict import AccentDict
 
 
 class TestMarkovChains(unittest.TestCase):

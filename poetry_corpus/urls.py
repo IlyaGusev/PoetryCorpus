@@ -16,13 +16,13 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 
-from poetry_corpus.views import PoemsListView, PoemView, MarkupView, GeneratorView
+from django.views.generic import TemplateView
 
 urlpatterns = [
-    url(r'^$', PoemsListView.as_view(), name='home'),
-    url(r'^poems/(?P<pk>[0-9]*)/$', PoemView.as_view(), name="poem"),
-    url(r'^generator/$', GeneratorView.as_view(), name="generator"),
-    url(r'^markups/(?P<pk>[0-9]*)/$', MarkupView.as_view(), name="markup"),
+    url(r'^$', TemplateView.as_view(template_name="about.html"), name='about'),
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('accounts.urls', namespace='accounts')),
+    url(r'^corpus/', include('corpus.urls', namespace='corpus')),
+    url(r'^search/', TemplateView.as_view(template_name="search.html"), name='search'),
+    url(r'^download/', TemplateView.as_view(template_name="download.html"), name='download'),
 ]

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from reversion.admin import VersionAdmin
 
-from poetry_corpus.models import Poem, Theme, Markup
+from poetry_corpus.apps.corpus.models import Poem, Theme, Markup
 
 
 class PoemInline(admin.StackedInline):

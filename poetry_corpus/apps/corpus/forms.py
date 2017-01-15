@@ -2,7 +2,7 @@
 
 from urllib import parse
 
-from django.forms import ValidationError, Form, CharField, IntegerField
+from django.forms import Form, CharField, IntegerField
 
 
 class GeneratorForm(Form):

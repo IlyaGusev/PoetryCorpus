@@ -6,14 +6,12 @@ import gc
 import os
 
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.externals import joblib
 from sklearn.model_selection import ShuffleSplit, cross_val_score
 
-from poetry_corpus.scripts.preprocess import CYRRILIC_LOWER_CONSONANTS, CYRRILIC_LOWER_VOWELS, VOWELS
-from poetry_corpus.scripts.phonetics.phonetics import Phonetics
+from poetry_corpus.apps.corpus.scripts.preprocess import CYRRILIC_LOWER_CONSONANTS, CYRRILIC_LOWER_VOWELS, VOWELS
+from poetry_corpus.apps.corpus.scripts.phonetics.phonetics import Phonetics
 
 
 class AccentClassifier:

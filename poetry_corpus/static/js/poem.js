@@ -55,9 +55,9 @@ $(function() {
                 var id= $(this).val();
                 var href = "";
                 if( id != 0 ) {
-                    href = "/markups/" + id;
+                    href = "/corpus/markups/" + id;
                 } else{
-                    href = "/poems/" + $(".poem")[0].id;
+                    href = "/corpus/poems/" + $(".poem")[0].id;
                 }
                 window.location.replace(href)
             });

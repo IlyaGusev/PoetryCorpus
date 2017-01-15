@@ -6,7 +6,7 @@ import os
 from dicttoxml import dicttoxml
 
 from poetry_corpus.settings import BASE_DIR
-from poetry_corpus.scripts.preprocess import to_cyrrilic, normilize_line
+from poetry_corpus.apps.corpus.scripts.preprocess import to_cyrrilic, normilize_line
 
 
 def clean_text(text):

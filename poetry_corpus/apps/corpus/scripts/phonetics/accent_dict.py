@@ -5,7 +5,7 @@
 import os
 import pickle
 
-from poetry_corpus.scripts.preprocess import normilize_line
+from poetry_corpus.apps.corpus.scripts.preprocess import normilize_line
 
 
 class AccentDict:

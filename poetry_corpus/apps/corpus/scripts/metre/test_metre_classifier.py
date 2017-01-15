@@ -6,9 +6,9 @@ import unittest
 import os
 
 from poetry_corpus.settings import BASE_DIR
-from poetry_corpus.scripts.phonetics.accent_dict import AccentDict
-from poetry_corpus.scripts.phonetics.phonetics import Phonetics
-from poetry_corpus.scripts.metre.metre_classifier import MetreClassifier
+from poetry_corpus.apps.corpus.scripts.phonetics.accent_dict import AccentDict
+from poetry_corpus.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry_corpus.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
 
 
 class TestMetreClassifier(unittest.TestCase):

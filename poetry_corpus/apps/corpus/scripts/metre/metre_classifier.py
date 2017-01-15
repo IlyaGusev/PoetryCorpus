@@ -2,7 +2,7 @@
 # Автор: Гусев Илья
 # Описание: Классификатор метра.
 
-from poetry_corpus.scripts.preprocess import get_first_vowel_position
+from poetry_corpus.apps.corpus.scripts.preprocess import get_first_vowel_position
 
 
 class MetreClassifier:

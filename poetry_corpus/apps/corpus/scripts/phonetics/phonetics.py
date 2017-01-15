@@ -2,8 +2,9 @@
 # Автор: Гусев Илья
 # Описание: Модуль разбивки на слоги, проставления ударений и получения начальной разметки.
 
-from poetry_corpus.scripts.phonetics.phonetics_markup import Syllable, Word, Markup, Line
-from poetry_corpus.scripts.preprocess import count_vowels, get_first_vowel_position, VOWELS, CLOSED_SYLLABLE_CHARS
+from poetry_corpus.apps.corpus.scripts.phonetics.phonetics_markup import Syllable, Word, Markup, Line
+from poetry_corpus.apps.corpus.scripts.preprocess import count_vowels, get_first_vowel_position, \
+    VOWELS, CLOSED_SYLLABLE_CHARS
 
 
 class Phonetics:

@@ -8,9 +8,9 @@ import xml.etree.ElementTree as etree
 from numpy.random import choice
 
 from poetry_corpus.settings import BASE_DIR
-from poetry_corpus.scripts.phonetics.phonetics import Phonetics
-from poetry_corpus.scripts.phonetics.phonetics_markup import CommonMixin
-from poetry_corpus.scripts.metre.metre_classifier import MetreClassifier
+from poetry_corpus.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry_corpus.apps.corpus.scripts.phonetics.phonetics_markup import CommonMixin
+from poetry_corpus.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
 
 
 class Markov(CommonMixin):

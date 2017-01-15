@@ -17,7 +17,7 @@
                 {% for poem in poems %}
                 <tr>
                     <td>{{ poem.author }}</td>
-                    <td><a href="{% url 'poem' pk=poem.pk %}">{{ poem.name }}</a></td>
+                    <td><a href="{% url 'corpus:poem' pk=poem.pk %}">{{ poem.name }}</a></td>
                     <td  class="text-center">{% if poem.markups.all|length != 0 %}
                         <i class="fa fa-check green" aria-hidden="true"></i>{% endif %}</td>
                 </tr>

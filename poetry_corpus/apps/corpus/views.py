@@ -1,21 +1,21 @@
 import os
 
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
-from django.views.generic import DetailView, ListView, TemplateView, FormView
-from django.core.exceptions import PermissionDenied
+from django.views.generic import DetailView, ListView, FormView
 
 import poetry_corpus
+from poetry_corpus.apps.corpus.forms import GeneratorForm
+from poetry_corpus.apps.corpus.models import Poem
+from poetry_corpus.apps.corpus.scripts.generate.markov import Markov
+from poetry_corpus.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
+from poetry_corpus.apps.corpus.scripts.phonetics.accent_classifier import AccentClassifier
+from poetry_corpus.apps.corpus.scripts.phonetics.accent_dict import AccentDict
+from poetry_corpus.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry_corpus.apps.corpus.scripts.phonetics.phonetics_markup import Markup
+from poetry_corpus.apps.corpus.scripts.preprocess import VOWELS
 from poetry_corpus.settings import BASE_DIR
-from poetry_corpus.models import Poem
-from poetry_corpus.forms import GeneratorForm
-from poetry_corpus.scripts.preprocess import VOWELS
-from poetry_corpus.scripts.phonetics.accent_classifier import AccentClassifier
-from poetry_corpus.scripts.phonetics.accent_dict import AccentDict
-from poetry_corpus.scripts.phonetics.phonetics_markup import Markup
-from poetry_corpus.scripts.phonetics.phonetics import Phonetics
-from poetry_corpus.scripts.metre.metre_classifier import MetreClassifier
-from poetry_corpus.scripts.generate.markov import Markov
 
 accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
 accents_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accents_dict)
@@ -35,7 +35,7 @@ def get_name(poem):
 
 class PoemsListView(ListView):
     model = Poem
-    template_name = 'index.html'
+    template_name = 'poems.html'
     context_object_name = 'poems'
     paginate_by = 50
 
@@ -134,7 +134,7 @@ class PoemView(DetailView):
                         if syllable.text[i] in VOWELS:
                             syllable.accent = syllable.begin + i
 
-            m = poetry_corpus.models.Markup()
+            m = poetry_corpus.apps.corpus.models.Markup()
             m.text = markup.to_xml()
             m.author = request.user.email
             m.poem = poem
@@ -145,7 +145,7 @@ class PoemView(DetailView):
 
 
 class MarkupView(DetailView):
-    model = poetry_corpus.models.Markup
+    model = poetry_corpus.apps.corpus.models.Markup
     template_name = 'poem.html'
     context_object_name = 'markup'
 

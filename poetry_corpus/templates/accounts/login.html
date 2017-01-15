@@ -7,7 +7,7 @@
         <form class="form-horizontal" method="post" action="./?next={{ redirect_url }}">
             {% csrf_token %}
             <div class="form-group row">
-                <label class="control-label col-md-offset-1 col-md-3" for="username">Логин</label>
+                <label class="control-label col-md-offset-1 col-md-3" for="username">E-mail</label>
                 <div class="col-md-6">
                     <input type="text" id="username" name = "username" placeholder="Логин" class="form-control">
                 </div>
@@ -21,7 +21,7 @@
             <div class="form-group row">
                 {% if form.errors %}
                     <div class="alert alert-danger">
-                        <p class="text-center">Сожалеем, вы неправильно ввели логин или пароль.</p>
+                        <p class="text-center">Сожалеем, вы неправильно ввели e-mail или пароль.</p>
                     </div>
                 {% endif %}
                 <div class="col-md-offset-3 col-md-6">

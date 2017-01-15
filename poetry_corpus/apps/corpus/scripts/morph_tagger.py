@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as etree
 import pymorphy2
-from poetry_corpus.scripts.preprocess import text_to_wordlist
-from poetry_corpus.scripts.preprocess import text_to_sentences
+from poetry_corpus.apps.corpus.scripts.preprocess import text_to_wordlist
+from poetry_corpus.apps.corpus.scripts.preprocess import text_to_sentences
 
 
 def main():
