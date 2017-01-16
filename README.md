@@ -10,11 +10,11 @@ sudo pip3 install -r requirements.txt
 
 ### Запуск ###
 ```
-scrapy runspider poetry_corpus/spiders/klassika.py -o datasets/klassika.xml
-scrapy runspider poetry_corpus/spiders/strofa.py -o datasets/strofa.xml
-scrapy runspider poetry_corpus/spiders/themes.py -o datasets/themes.xml
-scrapy runspider poetry_corpus/spiders/rupoem.py -o datasets/rupoem.xml
-cd poetry_corpus
+scrapy runspider poetry/spiders/klassika.py -o datasets/klassika.xml
+scrapy runspider poetry/spiders/strofa.py -o datasets/strofa.xml
+scrapy runspider poetry/spiders/themes.py -o datasets/themes.xml
+scrapy runspider poetry/spiders/rupoem.py -o datasets/rupoem.xml
+cd poetry
 python3 scripts/unite.py
 ```
 or
