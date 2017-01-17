@@ -16,7 +16,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
         accents_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accents_dict)
-        xml = b""
         json = ""
         i = 1
         for p in Poem.objects.all():
@@ -49,18 +48,17 @@ class Command(BaseCommand):
                                          for item in classifier.after_ml]))
             additional.append("Рифмы: \n" + "\n".join(lines))
             additional = "\n".join(additional)
+            text = markup.to_xml().replace("\n", "\\n").replace('"', '\\"').replace("\t", "\\t")
+            additional = additional.replace("\n", "\\n").replace('"', '\\"').replace("\t", "\\t")
 
-            xml += markup.to_xml().replace("\n", "\\n").replace('"', '\\"').replace("\t", "\\t").encode('utf-8').replace(b'<?xml version="1.0" encoding="UTF-8" ?>', b'')
             json += '{"model": "corpus.Markup", "fields": {' + \
-                    '"text": "' + markup.to_xml().replace("\n", "\\n").replace('"', '\\"').replace("\t", "\\t") + '", ' + \
+                    '"text": "' + text + '", ' + \
                     '"poem": ' + str(p.pk) + ', ' + \
                     '"author": "Automatic", ' + \
-                    '"additional": "' + additional.replace("\n", "\\n").replace('"', '\\"').replace("\t", "\\t") + '"}},'
+                    '"additional": "' + additional + '"}},'
             i += 1
             if i % 100 == 0:
                 print(i)
         json = "[" + json[:-1] + ']'
         with open(os.path.join(BASE_DIR, "datasets", "markup_django.json"), "w", encoding='utf-8') as f:
             f.write(json)
-        with open(os.path.join(BASE_DIR, "datasets", "markup_dump.xml"), "wb") as f:
-            f.write(b'<?xml version="1.0" encoding="UTF-8"?><items>' + xml + b'</items>')

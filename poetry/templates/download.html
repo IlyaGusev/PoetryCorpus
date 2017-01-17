@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static from staticfiles %}
 
 {% block content %}
 <div class="page-header">
@@ -6,7 +7,8 @@
 </div>
 <div class="row">
     <div class="col-large-12">
-        В разработке
+        <p><a href="{% static 'download/TextsMeta.zip' %}">Скачать zip-архив</a> стихотворений с метаданными, 8 MB</p>
+        <p><a href="{% static 'download/Markups.zip' %}">Скачать zip-архив</a> разметок, MB</p>
     </div>
 </div>
 {% endblock %}
