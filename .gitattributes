@@ -6,3 +6,11 @@ datasets/strofa.xml filter=lfs diff=lfs merge=lfs -text
 datasets/themes.xml filter=lfs diff=lfs merge=lfs -text
 datasets/themes_django.json filter=lfs diff=lfs merge=lfs -text
 datasets/klassika.xml filter=lfs diff=lfs merge=lfs -text
+datasets/corpus/all.xml filter=lfs diff=lfs merge=lfs -text
+datasets/corpus/markup_dump.xml filter=lfs diff=lfs merge=lfs -text
+datasets/django/all_django.json filter=lfs diff=lfs merge=lfs -text
+datasets/django/themes_django.json filter=lfs diff=lfs merge=lfs -text
+datasets/web/klassika.xml filter=lfs diff=lfs merge=lfs -text
+datasets/web/rupoem.xml filter=lfs diff=lfs merge=lfs -text
+datasets/web/strofa.xml filter=lfs diff=lfs merge=lfs -text
+datasets/web/themes.xml filter=lfs diff=lfs merge=lfs -text

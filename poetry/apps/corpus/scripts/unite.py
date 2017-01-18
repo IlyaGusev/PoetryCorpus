@@ -167,8 +167,8 @@ class Corpus:
 
 def main():
     corpus = Corpus()
-    text_files = [os.path.join(BASE_DIR, "datasets", "strofa.xml"), os.path.join(BASE_DIR, "datasets", "klassika.xml"),
-                  os.path.join(BASE_DIR, "datasets", "rupoem.xml")]
+    text_files = [os.path.join(BASE_DIR, "datasets", "rupoem.xml"), os.path.join(BASE_DIR, "datasets", "strofa.xml"),
+                  os.path.join(BASE_DIR, "datasets", "klassika.xml"),]
     themes_files = [os.path.join(BASE_DIR, "datasets", "themes.xml")]
     fields = {
         'name': {
@@ -226,7 +226,7 @@ def main():
         authors.add(normilize_line(elem['author']))
     print("Total authors: ", len(authors))
 
-    # corpus.to_sketch("../datasets/all_sketch.xml", fields)
-    corpus.to_django(os.path.join(BASE_DIR, "datasets", "all_django.json"),
-                     os.path.join(BASE_DIR, "datasets", "themes_django.json"), fields)
+    corpus.to_xml(os.path.join(BASE_DIR, "datasets", "corpus", "all.xml"))
+    corpus.to_django(os.path.join(BASE_DIR, "datasets", "django", "all_django.json"),
+                     os.path.join(BASE_DIR, "datasets", "django", "themes_django.json"), fields)
 main()

@@ -29,9 +29,9 @@ class Markov(CommonMixin):
                 markov = pickle.load(f)
                 self.__dict__.update(markov.__dict__)
         elif accents_dict is not None or accents_classifier is not None:
-            tree = etree.parse(os.path.join(BASE_DIR, "datasets", "all.xml"))
+            tree = etree.parse(os.path.join(BASE_DIR, "datasets", "corpus", "all.xml"))
             root = tree.getroot()
-            for text in root.findall(".//text"):
+            for text in root.findall(".//text")[:2000]:
                 content = text.text
                 markup = Phonetics.process_text(content, accents_dict)
                 classifier = MetreClassifier(markup, accents_classifier)

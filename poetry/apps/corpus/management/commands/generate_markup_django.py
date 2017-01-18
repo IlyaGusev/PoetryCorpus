@@ -11,14 +11,24 @@ from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
 
 
 class Command(BaseCommand):
-    help = 'Automatic markup update'
+    help = 'Automatic markup dump for Django'
+
+    def add_arguments(self, parser):
+        # Named (optional) arguments
+        parser.add_argument('--count',
+                            action='store',
+                            dest='count',
+                            default=None,
+                            help='Number of elems')
 
     def handle(self, *args, **options):
         accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
         accents_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accents_dict)
         json = ""
         i = 1
-        for p in Poem.objects.all():
+
+        poems = Poem.objects.all() if options.get('count') is None else Poem.objects.all()[:int(options.get('count'))]
+        for p in poems:
             markup = Phonetics.process_text(p.text, accents_dict)
             classifier = MetreClassifier(markup, accents_classifier)
             metre = classifier.classify_metre()
@@ -60,5 +70,5 @@ class Command(BaseCommand):
             if i % 100 == 0:
                 print(i)
         json = "[" + json[:-1] + ']'
-        with open(os.path.join(BASE_DIR, "datasets", "markup_django.json"), "w", encoding='utf-8') as f:
+        with open(os.path.join(BASE_DIR, "datasets", "django", "markup_django.json"), "w", encoding='utf-8') as f:
             f.write(json)

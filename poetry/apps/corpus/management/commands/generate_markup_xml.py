@@ -30,5 +30,5 @@ class Command(BaseCommand):
             i += 1
             if i % 100 == 0:
                 print(i)
-        with open(os.path.join(BASE_DIR, "datasets", "markup_dump.xml"), "wb") as f:
+        with open(os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml"), "wb") as f:
             f.write(b'<?xml version="1.0" encoding="UTF-8"?><items>' + xml + b'</items>')
