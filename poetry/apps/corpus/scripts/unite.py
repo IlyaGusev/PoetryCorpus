@@ -167,9 +167,9 @@ class Corpus:
 
 def main():
     corpus = Corpus()
-    text_files = [os.path.join(BASE_DIR, "datasets", "rupoem.xml"), os.path.join(BASE_DIR, "datasets", "strofa.xml"),
-                  os.path.join(BASE_DIR, "datasets", "klassika.xml"),]
-    themes_files = [os.path.join(BASE_DIR, "datasets", "themes.xml")]
+    text_files = [os.path.join(BASE_DIR, "datasets", "web", "rupoem.xml"), os.path.join(BASE_DIR, "datasets", "web", "strofa.xml"),
+                  os.path.join(BASE_DIR, "datasets", "web", "klassika.xml"),]
+    themes_files = [os.path.join(BASE_DIR, "datasets", "web", "themes.xml")]
     fields = {
         'name': {
             'path': './/name',
