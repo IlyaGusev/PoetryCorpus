@@ -70,9 +70,7 @@ class Phonetics:
             accents.append(word.find("ё"))
         else:
             # Проверяем словарь на наличие форм с ударениями.
-            forms = accents_dict.data.get(word)
-            if forms is not None:
-                accents = list(set([form.find("'") - 1 for form in forms if form.find("'") != -1]))
+            accents = accents_dict.get_accents(word)
             if 'е' in word:
                 # Находим все возможные варинаты преобразований 'е' в 'ё'.
                 positions = [i for i in range(len(word)) if word[i] == 'е']
@@ -86,7 +84,7 @@ class Phonetics:
                         beam = new_beam
                 # И проверяем их по словарю.
                 for permutation in beam:
-                    if accents_dict.data.get(permutation) is not None:
+                    if len(accents_dict.get_accents(permutation)) != 0:
                         yo_pos = permutation.find("ё")
                         if yo_pos != -1:
                             accents.append(yo_pos)

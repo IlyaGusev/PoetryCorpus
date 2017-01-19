@@ -62,7 +62,10 @@ class TestPhonetics(unittest.TestCase):
             'банка': [1],
             'оттечь': [3],
             'советского': [3],
-            'союза': [2]
+            'союза': [2],
+            'пора': [1, 3],
+            'изжила': [5],
+            'меда': [1]
         }
 
         for word, pos in checks.items():

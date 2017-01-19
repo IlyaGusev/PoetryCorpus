@@ -2,6 +2,7 @@ lxml
 cryptography
 scrapy >= 1.2
 dicttoxml
+datrie
 Django
 django-reversion
 numpy

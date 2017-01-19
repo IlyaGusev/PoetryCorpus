@@ -4,8 +4,9 @@
 
 import os
 import pickle
+import datrie
 
-from poetry.apps.corpus.scripts.preprocess import normilize_line
+from poetry.apps.corpus.scripts.preprocess import CYRRILIC_LOWER_VOWELS, CYRRILIC_LOWER_CONSONANTS
 
 
 class AccentDict:
@@ -13,7 +14,7 @@ class AccentDict:
     Класс данных, для сериализации словаря как dict'а и быстрой загрузки в память.
     """
     def __init__(self, accents_filename):
-        self.data = dict()
+        self.data = datrie.Trie(CYRRILIC_LOWER_VOWELS+CYRRILIC_LOWER_CONSONANTS+"-")
         self.load(accents_filename)
 
     def load(self, filename):
@@ -22,27 +23,41 @@ class AccentDict:
 
         :param filename: имя файла с оригинальным словарём.
         """
-        dump_file = os.path.splitext(filename)[0] + '.pickle'
+        dump_file = os.path.splitext(filename)[0] + '.trie'
+
         if os.path.isfile(dump_file):
-            with open(dump_file, 'rb') as p:
-                self.data = pickle.load(p)
+            self.data = datrie.Trie.load(dump_file)
         else:
             with open(filename, 'r', encoding='utf-8') as f:
-                words = f.readlines()
-                for line in words:
+                lines = f.readlines()
+                for line in lines:
                     for word in line.split("#")[1].split(","):
-                        if self.data.get(normilize_line(word)):
-                            self.data[normilize_line(word)].append(word.strip())
+                        word = word.strip()
+                        pos = 0
+                        accents = []
+                        clean_word = ""
+                        for i in range(len(word)):
+                            if word[i] == "'" or word[i] == "`":
+                                pos -= 1
+                                accents.append(pos)
+                                continue
+                            if word[i] == "ё":
+                                accents.append(pos)
+                            clean_word += word[i]
+                            pos += 1
+                        if clean_word not in self.data:
+                            self.data[clean_word] = set(accents)
                         else:
-                            self.data[normilize_line(word)] = [word.strip()]
-                with open(dump_file, 'wb') as p:
-                    pickle.dump(self.data, p)
+                            self.data[clean_word].update(accents)
+            self.data.save(dump_file)
 
-    def get(self, word):
+    def get_accents(self, word):
         """
         Обёртка над data.get().
 
         :param word: слово, которое мы хотим посмотреть в словаре.
         :return forms: массив форм с разными ударениями.
         """
-        return self.data.get(word)
+        if word in self.data:
+            return list(self.data[word])
+        return []

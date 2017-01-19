@@ -42,12 +42,13 @@ class AccentClassifier:
             syllables = Phonetics.get_word_syllables(key)
             if len(syllables) >= 2:
                 for syllable in syllables:
-                    for accent in [form.find("'") - 1 for form in accents if form.find("'") != -1]: # except ё[yo]
-                        if syllable.begin <= accent < syllable.end:
-                            syllable.accent = accent
-                            answer = syllable.number
-                            answers[len(syllables)].append(answer)
-                            train_syllables[len(syllables)].append(syllables)
+                    if "ё" not in key:
+                        for accent in accents:
+                            if syllable.begin <= accent < syllable.end:
+                                syllable.accent = accent
+                                answer = syllable.number
+                                answers[len(syllables)].append(answer)
+                                train_syllables[len(syllables)].append(syllables)
 
         for l in range(2, 13):
             train_data = []
