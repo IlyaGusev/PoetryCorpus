@@ -1,4 +1,4 @@
-# Поэтический корпус русского языка (учебный проект) #
+# Поэтический корпус русского языка #
 
 [![Build Status](https://travis-ci.org/IlyaGusev/PoetryCorpus.svg?branch=master)](https://travis-ci.org/IlyaGusev/PoetryCorpus)
 
