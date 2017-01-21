@@ -3,7 +3,6 @@
 # Описание: Класс для удобной работы со словарём ударений.
 
 import os
-import pickle
 import datrie
 
 from poetry.apps.corpus.scripts.preprocess import CYRRILIC_LOWER_VOWELS, CYRRILIC_LOWER_CONSONANTS
@@ -20,7 +19,6 @@ class AccentDict:
     def load(self, filename):
         """
         Загрузка словаря из файла. Если уже есть его сериализация в .pickle файле, берём из него.
-
         :param filename: имя файла с оригинальным словарём.
         """
         dump_file = os.path.splitext(filename)[0] + '.trie'
@@ -54,7 +52,6 @@ class AccentDict:
     def get_accents(self, word):
         """
         Обёртка над data.get().
-
         :param word: слово, которое мы хотим посмотреть в словаре.
         :return forms: массив форм с разными ударениями.
         """

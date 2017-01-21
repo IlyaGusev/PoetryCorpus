@@ -115,7 +115,6 @@ class Markup(CommonMixin):
     def to_xml(self):
         """
         Экспорт в XML.
-
         :return self: строка в формате XML
         """
         return dicttoxml(self.to_dict(), custom_root='markup', attr_type=False).decode('utf-8')
@@ -123,7 +122,6 @@ class Markup(CommonMixin):
     def from_xml(self, xml):
         """
         Импорт из XML.
-
         :param xml: XML-разметка
         :return self: получившийся объект Markup
         """

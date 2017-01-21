@@ -2,6 +2,8 @@
 # Автор: Гусев Илья
 # Описание: Модуль разбивки на слоги, проставления ударений и получения начальной разметки.
 
+from collections import Counter
+from collections import defaultdict
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Syllable, Word, Markup, Line
 from poetry.apps.corpus.scripts.preprocess import count_vowels, get_first_vowel_position, \
     VOWELS, CLOSED_SYLLABLE_CHARS
@@ -15,7 +17,6 @@ class Phonetics:
     def get_word_syllables(word):
         """
         Разделение слова на слоги.
-
         :param word: слово для разбивки на слоги
         :return syllables: массив слогов слова (list of Syllable)
         """
@@ -53,7 +54,6 @@ class Phonetics:
     def get_word_accent(word, accents_dict):
         """
         Определение ударения в слове по словарю. Возможно несколько вариантов ударения.
-
         :param word: слово для простановки ударений
         :param accents_dict: экземпляр обёртки для словаря ударений
         :return accents: массив позиций букв, на которые падает ударение
@@ -95,7 +95,6 @@ class Phonetics:
         """
         Фонетическая транскрипция слова на основе упорядоченного набора правил вида A->B,
         где A и B - последовательности символов.
-
         :param word: слово для разбора
         :return phonetics: фонетическое слово
         """
@@ -108,7 +107,6 @@ class Phonetics:
     def get_rhyme_profile(word):
         """
         Получение профиля рифмовки (набора признаков для сопоставления)
-
         :param word: уже акцентуированное слово (Word)
         :return profile: профиль рифмовки
         """
@@ -134,7 +132,6 @@ class Phonetics:
     def is_rhyme(word1, word2, score_border=4, syllable_number_border=2):
         """
         Проверка рифмованности 2 слов.
-
         :param word1: первое слово для проверки рифмы, уже акцентуированное (Word)
         :param word2: второе слово для проверки рифмы, уже акцентуированное (Word)
         :param score_border: граница определния рифмы, чем выше, тем строже совпадение
@@ -168,7 +165,7 @@ class Phonetics:
         :param border: граница определния рифмы, чем выше, тем строже совпадение
         :return result: словарь всех рифм, в коротком предсатвлении
         """
-        rhymes = {}
+        rhymes = defaultdict(Counter)
         rhyme_candidates = []
         for line in markup.lines:
             if len(line.words) != 0:
@@ -181,10 +178,6 @@ class Phonetics:
                     short_words[shorts[0]] = words[0]
                     short_words[shorts[1]] = words[1]
                     for item in [shorts, tuple(reversed(shorts))]:
-                        if rhymes.get(item[0]) is None:
-                            rhymes[item[0]] = dict()
-                        if rhymes[item[0]].get(item[1]) is None:
-                            rhymes[item[0]][item[1]] = 0
                         rhymes[item[0]][item[1]] += 1
         return rhymes
 
@@ -192,7 +185,6 @@ class Phonetics:
     def process_text(text, accents_dict):
         """
         Получение начального варианта разметки по слогам и ударениям.
-
         :param text: текст для разметки
         :param accents_dict: экземпляр обёртки для словаря ударений
         :return markup: разметка по слогам и ударениям

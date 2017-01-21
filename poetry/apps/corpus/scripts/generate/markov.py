@@ -6,6 +6,7 @@ import os
 import pickle
 import xml.etree.ElementTree as etree
 from numpy.random import choice
+from collections import Counter, defaultdict
 
 from poetry.settings import BASE_DIR
 from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
@@ -17,9 +18,9 @@ class Markov(CommonMixin):
     """
     Генерация стихов с помощью марковских цепей.
     """
-    def __init__(self, accents_dict=None, accents_classifier=None):
-        self.inverse_transitions = {}
-        self.rhymes = {}
+    def __init__(self, accents_dict, accents_classifier):
+        self.transitions = defaultdict(Counter)
+        self.rhymes = defaultdict(Counter)
         self.short_words = {}
 
         # Делаем дамп модели для ускорения загрузки.
@@ -28,39 +29,39 @@ class Markov(CommonMixin):
             with open(dump_filename, "rb") as f:
                 markov = pickle.load(f)
                 self.__dict__.update(markov.__dict__)
-        elif accents_dict is not None or accents_classifier is not None:
-            tree = etree.parse(os.path.join(BASE_DIR, "datasets", "corpus", "all.xml"))
-            root = tree.getroot()
-            for text in root.findall(".//text")[:2000]:
-                content = text.text
-                markup = Phonetics.process_text(content, accents_dict)
-                classifier = MetreClassifier(markup, accents_classifier)
-                classifier.classify_metre()
-                classifier.get_ml_results()
-                markup = classifier.get_improved_markup()
-                self.add_markup(markup)
+        else:
+            root = etree.parse(os.path.join(BASE_DIR, "datasets", "corpus", "all.xml")).getroot()
+            for item in root.findall("./item"):
+                if item.find("./author").text == "Александр Пушкин":
+                    self.process_text(item.find("./text").text, accents_dict, accents_classifier)
             with open(dump_filename, "wb") as f:
                 pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
 
-    def generate_chain(self, words, transitions):
+    def process_text(self, text, accents_dict, accents_classifier):
+        """
+        Автоматическая разметка сырого текста.
+        :param text: сам текст
+        :param accents_dict: словарь ударений.
+        :param accents_classifier: классификатор ударений.
+        """
+        markup = Phonetics.process_text(text, accents_dict)
+        classifier = MetreClassifier(markup, accents_classifier)
+        classifier.classify_metre()
+        classifier.get_ml_results()
+        markup = classifier.get_improved_markup()
+        self.add_markup(markup)
+
+    def generate_chain(self, words):
         """
         Генерация переходов в марковских цепях с учётом частотности.
         :param words: вершины цепи
-        :param transitions: изначальные переходы
         :return: обновленные переходы
         """
         for i in range(len(words) - 1):
             current_word = words[i]
             next_word = words[i+1]
-
-            if transitions.get(current_word) is None:
-                transitions[current_word] = {}
-            transition = transitions[current_word]
-
-            if transition.get(next_word) is None:
-                transition[next_word] = 0
-            transition[next_word] += 1
-        return transitions
+            self.transitions[current_word][next_word] += 1
+        return self.transitions
 
     def add_markup(self, markup):
         """
@@ -74,16 +75,12 @@ class Markov(CommonMixin):
                 self.short_words[word.get_short()] = word
 
         # Генерируем переходы.
-        self.generate_chain(list(reversed(words)), self.inverse_transitions)
+        self.generate_chain(list(reversed(words)))
 
         # Заполняем словарь рифм.
         rhymes = Phonetics.get_all_rhymes(markup, self.short_words, border=5)
         for short1, mapping in rhymes.items():
             for short2, freq in mapping.items():
-                if self.rhymes.get(short1) is None:
-                    self.rhymes[short1] = {}
-                if self.rhymes[short1].get(short2) is None:
-                    self.rhymes[short1][short2] = 0
                 self.rhymes[short1][short2] += freq
 
     def filter_by_metre(self, collection, metre_pattern, n_syllables_min, n_syllables_max, position_in_pattern=-1):
@@ -186,7 +183,7 @@ class Markov(CommonMixin):
                     print("Retry")
                     return self.generate_poem(metre_schema, rhyme_schema, n_syllables)
                 seed = choice(letter_all_rhymes[letter], 1)[0]
-                generated = self.generate_line(self.inverse_transitions, n_syllables,
+                generated = self.generate_line(self.transitions, n_syllables,
                                                seed_short=seed, metre_pattern=metre_pattern)
                 if generated != "":
                     letter_all_rhymes[letter].remove(seed)

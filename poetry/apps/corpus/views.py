@@ -6,11 +6,20 @@ from django.http import JsonResponse
 from django.views.generic import DetailView, ListView, FormView
 
 import poetry
+from poetry.settings import BASE_DIR
 from poetry.apps.corpus.forms import GeneratorForm
 from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem
-from poetry.apps.corpus.scripts.generate.markov import Markov
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
 from poetry.apps.corpus.scripts.preprocess import VOWELS
+from poetry.apps.corpus.scripts.generate.markov import Markov
+from poetry.apps.corpus.scripts.phonetics.accent_classifier import AccentClassifier
+from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
+
+
+class Global:
+    accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
+    accent_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accent_dict)
+    markov = Markov(accent_dict, accent_classifier)
 
 
 def get_name(poem):
@@ -118,13 +127,12 @@ class GeneratorView(FormView):
     form_class = GeneratorForm
 
     def get_context_data(self, **kwargs):
-        markov = Markov()
         context = super(GeneratorView, self).get_context_data(**kwargs)
         settings, createdz = GenerationSettings.objects.get_or_create(
             metre_schema=self.request.GET.get('metre_schema', "-+"),
             syllables_count=int(self.request.GET.get('syllables_count', 8)),
             rhyme_schema=self.request.GET.get('rhyme_schema', "aabb"))
-        context['generated'] = markov.generate_poem(settings.metre_schema,
+        context['generated'] = Global.markov.generate_poem(settings.metre_schema,
                                                     settings.rhyme_schema,
                                                     settings.syllables_count)
         AutomaticPoem.objects.create(text=context['generated'], date=datetime.datetime.now(), settings=settings)

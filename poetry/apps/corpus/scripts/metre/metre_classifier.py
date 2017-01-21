@@ -38,7 +38,6 @@ class MetreClassifier:
         если только эти ударения не подпадают под Исключение 1.
         Исключение 1: Ударения могут приходиться на слабое место,
         если безударный слог ТОГО ЖЕ слова не попадает на икт.
-
         :return: лучший метр и его ошибки и исправления
         """
         # TODO: Дольник и тактовик, цезура и другие эффекты.
@@ -100,7 +99,6 @@ class MetreClassifier:
     def get_improved_markup(self):
         """
         Улучшаем разметку после классификации метра.
-
         :return: markup: улучшенная по метру разметка
         """
         for pos in self.corrected_accents[self.result_metre] + self.omograph_resolutions[self.result_metre]:
