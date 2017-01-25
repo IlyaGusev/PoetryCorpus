@@ -23,6 +23,5 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('accounts.urls', namespace='accounts')),
     url(r'^corpus/', include('corpus.urls', namespace='corpus')),
-    url(r'^search/', TemplateView.as_view(template_name="search.html"), name='search'),
     url(r'^download/', TemplateView.as_view(template_name="download.html"), name='download'),
 ]

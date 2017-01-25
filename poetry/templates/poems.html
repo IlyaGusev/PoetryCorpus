@@ -18,7 +18,7 @@
                 <tr>
                     <td>{{ poem.author }}</td>
                     <td><a href="{% url 'corpus:markup' pk=poem.markups.all.0.pk %}">{{ poem.name }}</a></td>
-                    <td  class="text-center">{% if poem.markups.all|length != 0 %}
+                    <td  class="text-center">{% if poem.count_manual_markups != 0 %}
                         <i class="fa fa-check green" aria-hidden="true"></i>{% endif %}</td>
                 </tr>
                 {% endfor %}

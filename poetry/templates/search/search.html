@@ -22,23 +22,20 @@
         </form>
         {% if query %}
             <h3>Результаты:</h3>
-            {% for result in page.object_list %}
-                <p>
-                    <a href="{% url 'corpus:markup' pk=result.object.markups.all.0.pk %}">{{ result.object.name }}</a>
-                </p>
-            {% empty %}
-                <p>No results found.</p>
-            {% endfor %}
-
-            {% if page.has_previous or page.has_next %}
-                <div>
-                    {% if page.has_previous %}<a href="?q={{ query }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %}
-                    |
-                    {% if page.has_next %}<a href="?q={{ query }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
-                </div>
-            {% endif %}
-        {% else %}
-            {# Show some example queries to run, maybe query syntax, something else? #}
+            {% include "pagination.html" with page_obj=page %}
+             <table class="table table-hover">
+                <thead>
+                    <th width="25%">Автор</th>
+                    <th width="60%">Название</th>
+                </thead>
+                {% for result in page.object_list %}
+                <tr>
+                    <td>{{ result.object.author }}</td>
+                    <td><a href="{% url 'corpus:markup' pk=result.object.markups.all.0.pk %}">{{ result.object.get_name }}</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% include "pagination.html" with page_obj=page %}
         {% endif %}
     </div>
 </div>

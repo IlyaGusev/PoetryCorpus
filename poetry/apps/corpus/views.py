@@ -17,21 +17,27 @@ from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
 
 
 class Global:
-    accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
-    accent_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accent_dict)
-    markov = Markov(accent_dict, accent_classifier)
+    accent_dict = None
+    accent_classifier = None
+    markov = None
 
+    @classmethod
+    def get_dict(cls):
+        if cls.accent_dict is None:
+            cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
+        return cls.accent_dict
 
-def get_name(poem):
-    if poem.name == "":
-        name = poem.text.strip().split("\n")[0]
-        i = len(name) - 1
-        while i > 0 and not name[i].isalpha():
-            i -= 1
-        name = name[:i+1]
-    else:
-        name = poem.name
-    return name
+    @classmethod
+    def get_classifier(cls):
+        if cls.accent_classifier is None:
+            cls.accent_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), cls.get_dict())
+        return cls.accent_classifier
+
+    @classmethod
+    def get_markov(cls):
+        if cls.markov is None:
+            cls.markov = Markov(cls.get_dict(), cls.get_classifier())
+        return cls.markov
 
 
 class PoemsListView(ListView):
@@ -43,7 +49,7 @@ class PoemsListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(PoemsListView, self).get_context_data(**kwargs)
         for i in range(len(context['poems'])):
-            context['poems'][i].name = get_name(context['poems'][i])
+            context['poems'][i].name = context['poems'][i].get_name()
         return context
 
 
@@ -86,7 +92,7 @@ class MarkupView(DetailView):
         m.from_xml(markup.text)
         context['text'] = process_markup(m)
         context['poem'] = markup.poem
-        context['poem'].name = get_name(markup.poem)
+        context['poem'].name = markup.poem.get_name()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -128,11 +134,11 @@ class GeneratorView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(GeneratorView, self).get_context_data(**kwargs)
-        settings, createdz = GenerationSettings.objects.get_or_create(
+        settings, created = GenerationSettings.objects.get_or_create(
             metre_schema=self.request.GET.get('metre_schema', "-+"),
             syllables_count=int(self.request.GET.get('syllables_count', 8)),
             rhyme_schema=self.request.GET.get('rhyme_schema', "aabb"))
-        context['generated'] = Global.markov.generate_poem(settings.metre_schema,
+        context['generated'] = Global.get_markov().generate_poem(settings.metre_schema,
                                                     settings.rhyme_schema,
                                                     settings.syllables_count)
         AutomaticPoem.objects.create(text=context['generated'], date=datetime.datetime.now(), settings=settings)

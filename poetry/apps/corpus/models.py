@@ -21,8 +21,20 @@ class Poem(Model):
     themes = ManyToManyField(Theme, verbose_name="Темы", related_name="poems", blank=True)
 
     def __str__(self):
-        return 'Стихотворение: ' + (str(self.name) if str(self.name) != '' else str(self.text).split('\n')[0]) + \
-               ", " + str(self.author)
+        return 'Стихотворение: ' + self.get_name() + ", " + str(self.author)
+
+    def get_name(self):
+        name = self.name
+        if name == "":
+            name = self.text.strip().split("\n")[0]
+            i = len(name) - 1
+            while i > 0 and not name[i].isalpha():
+                i -= 1
+            name = name[:i+1]
+        return name
+
+    def count_manual_markups(self):
+        return sum([int(markup.author != "Automatic") for markup in self.markups.all()])
 
     class Meta:
         verbose_name = "Стихотворение"
