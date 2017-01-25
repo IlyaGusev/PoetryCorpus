@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <h3>Поиск</h3>
+</div>
+<div class="row">
+    <div class="col-large-12">
+        <form class="form-horizontal" method="get" action=".">
+            <div class="form-group row">
+                <div class="col-md-6 col-md-offset-3">
+                    <input id="id_q" name="q" class="form-control"  type="search" placeholder="Искать по автору, названию, тексту">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-offset-3 col-md-6">
+                    <center>
+                        <button type="submit" class="btn btn-primary" value="Search">Искать</button>
+                    </center>
+                </div>
+            </div>
+        </form>
+        {% if query %}
+            <h3>Результаты:</h3>
+            {% for result in page.object_list %}
+                <p>
+                    <a href="{% url 'corpus:markup' pk=result.object.markups.all.0.pk %}">{{ result.object.name }}</a>
+                </p>
+            {% empty %}
+                <p>No results found.</p>
+            {% endfor %}
+
+            {% if page.has_previous or page.has_next %}
+                <div>
+                    {% if page.has_previous %}<a href="?q={{ query }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %}
+                    |
+                    {% if page.has_next %}<a href="?q={{ query }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            {# Show some example queries to run, maybe query syntax, something else? #}
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -5,6 +5,8 @@ dicttoxml
 datrie
 Django
 django-reversion
+django-haystack
+elasticsearch
 numpy
 scipy
 scikit-learn == 0.18.0
