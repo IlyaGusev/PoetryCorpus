@@ -1,0 +1,14 @@
+version: '2'
+services:
+  elasticsearch:
+    image: elasticsearch:2.3.3
+    volumes:
+      - /data/poetry/elastic:/usr/share/elasticsearch/data
+  web:
+    build: .
+    ports:
+      - 80:80
+    volumes:
+      - /data/poetry/db:/code/db
+    depends_on:
+      - "elasticsearch"

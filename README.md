@@ -9,13 +9,13 @@
 * Стихотворений, протегированных темами:  3904
 * Авторов:  195
 
-### Установка ###
+### Установка зависимостей вручную ###
 ```
 sudo apt-get install build-essential libssl-dev libffi-dev python-dev libxslt1-dev libxslt1.1 libxml2-dev libxml2 libssl-dev
 sudo pip3 install -r requirements.txt
 ```
 
-### Запуск ###
+### Препроцессинг ###
 ```
 # "Пауки", собирающие тексты с сайтов
 scrapy runspider poetry/apps/corpus/spiders/klassika.py -o datasets/web/klassika.xml
@@ -31,9 +31,18 @@ or
 git lfs pull
 ```
 
-### Для корпус-менеджера и получения разметки по слогам и ударениям ###
+### Для инициализации базы данных с разметкой по слогам и ударениям ###
 ```
 sh reset_db.sh
+```
+
+### Запуск через Docker Compose  ###
+```
+# Установка Docker и docker-compose
+curl -sSL https://get.docker.com/ | sh
+curl -L "https://github.com/docker/compose/releases/download/1.10.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# Запуск
+docker-compose up
 ```
 
 ### Литература ###

@@ -7,7 +7,6 @@ models
 __pycache__
 results
 db*
-Dockerfile
 build.sh
-conf
+conf/secret_key.txt
 *.pickle

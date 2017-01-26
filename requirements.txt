@@ -1,12 +1,12 @@
-lxml
-cryptography
-scrapy >= 1.2
-dicttoxml
-datrie
-Django
-django-reversion
-django-haystack
-elasticsearch
-numpy
-scipy
+lxml == 3.7.1
+cryptography == 1.7.1
+scrapy == 1.2
+dicttoxml == 1.7.4
+datrie == 0.7.1
+Django == 1.10.4
+django-reversion == 2.0.8
+django-haystack == 2.6.0
+elasticsearch == 5.1.0
+numpy == 1.11.3
+scipy == 0.18.1
 scikit-learn == 0.18.0
