@@ -6,6 +6,7 @@ datrie == 0.7.1
 Django == 1.10.4
 django-reversion == 2.0.8
 django-haystack == 2.6.0
+django-robots == 2.0
 elasticsearch == 5.1.0
 numpy == 1.11.3
 scipy == 0.18.1

@@ -39,6 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
+    'robots',
     'haystack',
     'accounts',
     'poetry.apps.corpus',
@@ -139,7 +142,9 @@ HAYSTACK_CONNECTIONS = {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
         'URL': 'http://elasticsearch:9200/',
         'INDEX_NAME': 'haystack',
-	'TIMEOUT' : 120 
+        'TIMEOUT': 120
     },
 }
+
+SITE_ID = 1
 

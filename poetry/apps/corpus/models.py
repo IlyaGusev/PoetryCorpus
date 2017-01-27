@@ -1,4 +1,5 @@
 from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, DateTimeField
+from django.core.urlresolvers import reverse
 
 
 class Theme(Model):
@@ -33,6 +34,11 @@ class Poem(Model):
             name = name[:i+1]
         return name
 
+    def get_absolute_url(self):
+        if len(self.markups.all()) != 0:
+            return self.markups.all()[0].get_absolute_url()
+        return reverse("corpus:poems")
+
     def count_manual_markups(self):
         return sum([int(markup.author != "Automatic") for markup in self.markups.all()])
 
@@ -49,6 +55,9 @@ class Markup(Model):
 
     def __str__(self):
         return 'Разметка' + str(self.poem.name) + " " + str(self.author)
+
+    def get_absolute_url(self):
+        return reverse("corpus:markup", kwargs={"pk": self.pk})
 
     class Meta:
         verbose_name = "Разметка"

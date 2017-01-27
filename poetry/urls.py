@@ -15,8 +15,18 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap, index
 
 from django.views.generic import TemplateView
+from poetry.sitemaps import StaticViewSitemap
+from poetry.apps.accounts.sitemaps import AccountsStaticSitemap
+from poetry.apps.corpus.sitemaps import CorpusDataSitemap
+
+sitemaps = {
+    'static': StaticViewSitemap,
+    'accounts': AccountsStaticSitemap,
+    'corpus': CorpusDataSitemap
+}
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name="about.html"), name='about'),
@@ -24,4 +34,8 @@ urlpatterns = [
     url(r'^accounts/', include('accounts.urls', namespace='accounts')),
     url(r'^corpus/', include('corpus.urls', namespace='corpus')),
     url(r'^download/', TemplateView.as_view(template_name="download.html"), name='download'),
+    url(r'^sitemap\.xml$', index, {'sitemaps': sitemaps}),
+    url(r'^sitemap-(?P<section>.+)\.xml$', sitemap, {'sitemaps': sitemaps},
+        name='django.contrib.sitemaps.views.sitemap'),
+    url(r'^robots\.txt', include('robots.urls')),
 ]

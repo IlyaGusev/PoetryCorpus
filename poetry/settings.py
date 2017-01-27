@@ -39,11 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
+    'robots',
     'haystack',
     'accounts',
     'poetry.apps.corpus',
     'poetry',
-    'reversion'
+    'reversion',
 ]
 
 MIDDLEWARE = [
@@ -138,3 +141,5 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'haystack',
     },
 }
+
+SITE_ID = 1
