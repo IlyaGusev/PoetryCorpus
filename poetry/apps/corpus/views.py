@@ -1,25 +1,27 @@
 import os
 import datetime
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse_lazy, reverse
 from django.http import JsonResponse
 from django.views.generic import DetailView, ListView, FormView
 
 import poetry
 from poetry.settings import BASE_DIR
-from poetry.apps.corpus.forms import GeneratorForm
+from poetry.apps.corpus.forms import GeneratorForm, AccentsForm, RhymesForm, AnalysisForm
 from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem
+from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
 from poetry.apps.corpus.scripts.preprocess import VOWELS
 from poetry.apps.corpus.scripts.generate.markov import Markov
 from poetry.apps.corpus.scripts.phonetics.accent_classifier import AccentClassifier
 from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
-
+from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
 
 class Global:
     accent_dict = None
     accent_classifier = None
     markov = None
+    rhymes = None
 
     @classmethod
     def get_dict(cls):
@@ -38,6 +40,12 @@ class Global:
         if cls.markov is None:
             cls.markov = Markov(cls.get_dict(), cls.get_classifier())
         return cls.markov
+
+    @classmethod
+    def get_rhymes(cls):
+        if cls.rhymes is None:
+            cls.rhymes = Rhymes.get_all_rhymes(cls.get_dict(), cls.get_classifier())
+        return cls.rhymes
 
 
 class PoemsListView(ListView):
@@ -129,7 +137,7 @@ class MarkupView(DetailView):
 
 class GeneratorView(FormView):
     template_name = "generator.html"
-    success_url = '/generator'
+    success_url = reverse_lazy('corpus:generator')
     form_class = GeneratorForm
 
     def get_context_data(self, **kwargs):
@@ -143,3 +151,36 @@ class GeneratorView(FormView):
                                                     settings.syllables_count)
         AutomaticPoem.objects.create(text=context['generated'], date=datetime.datetime.now(), settings=settings)
         return context
+
+
+class AccentsView(FormView):
+    template_name = "accents.html"
+    success_url = reverse_lazy("corpus:accents")
+    form_class = AccentsForm
+
+    def get_context_data(self, **kwargs):
+        context = super(AccentsView, self).get_context_data(**kwargs)
+        word = self.request.GET.get('word', "")
+        print(word)
+        if word != "":
+            context['accent'] = Phonetics.get_improved_word_accent(word, Global.get_dict(), Global.get_classifier()) + 1
+        return context
+
+
+class RhymesView(FormView):
+    template_name = "rhymes.html"
+    success_url = reverse_lazy("corpus:rhymes")
+    form_class = RhymesForm
+
+    def get_context_data(self, **kwargs):
+        context = super(RhymesView, self).get_context_data(**kwargs)
+        word = self.request.GET.get('word', "")
+        if word != "":
+            context['rhymes'] = Global.get_rhymes().get_word_rhymes(word, Global.get_dict(), Global.get_classifier())
+        return context
+
+
+class AnalysisView(FormView):
+    template_name = "analysis.html"
+    success_url = reverse_lazy("corpus:analysis")
+    form_class = AnalysisForm

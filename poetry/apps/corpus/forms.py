@@ -2,12 +2,12 @@
 
 from urllib import parse
 
-from django.forms import Form, CharField, IntegerField
+from django.forms import Form, CharField, IntegerField, Textarea
 
 
 class GeneratorForm(Form):
     """
-    Форма генератора стихов
+    Форма генератора стихов.
     """
     metre_schema = CharField(label="Схема метра (+/-)", initial="+-")
     rhyme_schema = CharField(label="Схема рифмовки (a/b/c)", max_length=30, initial="aabb")
@@ -17,3 +17,24 @@ class GeneratorForm(Form):
         if self.is_valid():
             return parse.urlencode(self.cleaned_data)
         return ""
+
+
+class AccentsForm(Form):
+    """
+    Форма определения ударения слова.
+    """
+    word = CharField(label="Слово", max_length=30)
+
+
+class RhymesForm(Form):
+    """
+    Форма подбора рифм
+    """
+    word = CharField(label="Слово", max_length=30)
+
+
+class AnalysisForm(Form):
+    """
+    Форма анализа стиховторения
+    """
+    text = CharField(label="Стихотворение для анализа", max_length=25000, widget=Textarea)

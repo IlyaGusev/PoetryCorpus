@@ -18,7 +18,7 @@ class AccentDict:
 
     def load(self, filename):
         """
-        Загрузка словаря из файла. Если уже есть его сериализация в .pickle файле, берём из него.
+        Загрузка словаря из файла. Если уже есть его сериализация в .trie файле, берём из него.
         :param filename: имя файла с оригинальным словарём.
         """
         dump_file = os.path.splitext(filename)[0] + '.trie'
@@ -43,10 +43,7 @@ class AccentDict:
                                 accents.append(pos)
                             clean_word += word[i]
                             pos += 1
-                        if clean_word not in self.data:
-                            self.data[clean_word] = set(accents)
-                        else:
-                            self.data[clean_word].update(accents)
+                        self.update(clean_word, accents)
             self.data.save(dump_file)
 
     def get_accents(self, word):
@@ -58,3 +55,14 @@ class AccentDict:
         if word in self.data:
             return list(self.data[word])
         return []
+
+    def update(self, word, accents):
+        """
+        Обновление словаря.
+        :param word: слово.
+        :param accents: набор ударений.
+        """
+        if word not in self.data:
+            self.data[word] = set(accents)
+        else:
+            self.data[word].update(accents)

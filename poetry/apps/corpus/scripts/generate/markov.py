@@ -10,6 +10,7 @@ from collections import Counter, defaultdict
 
 from poetry.settings import BASE_DIR
 from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import CommonMixin
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
 
@@ -20,7 +21,7 @@ class Markov(CommonMixin):
     """
     def __init__(self, accents_dict, accents_classifier):
         self.transitions = defaultdict(Counter)
-        self.rhymes = defaultdict(Counter)
+        self.rhymes = Rhymes()
         self.short_words = {}
 
         # Делаем дамп модели для ускорения загрузки.
@@ -40,7 +41,7 @@ class Markov(CommonMixin):
     def process_text(self, text, accents_dict, accents_classifier):
         """
         Автоматическая разметка сырого текста.
-        :param text: сам текст
+        :param text: сам текст.
         :param accents_dict: словарь ударений.
         :param accents_classifier: классификатор ударений.
         """
@@ -54,8 +55,8 @@ class Markov(CommonMixin):
     def generate_chain(self, words):
         """
         Генерация переходов в марковских цепях с учётом частотности.
-        :param words: вершины цепи
-        :return: обновленные переходы
+        :param words: вершины цепи.
+        :return: обновленные переходы.
         """
         for i in range(len(words) - 1):
             current_word = words[i]
@@ -66,7 +67,7 @@ class Markov(CommonMixin):
     def add_markup(self, markup):
         """
         Дополнение цепей на основе разметки.
-        :param markup: разметка
+        :param markup: разметка.
         """
         words = []
         for line in markup.lines:
@@ -78,20 +79,17 @@ class Markov(CommonMixin):
         self.generate_chain(list(reversed(words)))
 
         # Заполняем словарь рифм.
-        rhymes = Phonetics.get_all_rhymes(markup, self.short_words, border=5)
-        for short1, mapping in rhymes.items():
-            for short2, freq in mapping.items():
-                self.rhymes[short1][short2] += freq
+        self.rhymes.add_markup(markup)
 
     def filter_by_metre(self, collection, metre_pattern, n_syllables_min, n_syllables_max, position_in_pattern=-1):
         """
         Фильтрация по метру элементов коллекции из коротких версий слов из разметки.
-        :param collection:  набор коротких версий слов
-        :param metre_pattern: шаблон метра с длиной, равной количеству слогов в строке
-        :param n_syllables_min: минимальное количество слогов в слове
-        :param n_syllables_max: максимальное количество слогов в слове
-        :param position_in_pattern: позиция в шаблоне метра, куда нужно вставить слово, -1 == вставить в конец
-        :return: коллекция, фильрованная по метру
+        :param collection:  набор коротких версий слов.
+        :param metre_pattern: шаблон метра с длиной, равной количеству слогов в строке.
+        :param n_syllables_min: минимальное количество слогов в слове.
+        :param n_syllables_max: максимальное количество слогов в слове.
+        :param position_in_pattern: позиция в шаблоне метра, куда нужно вставить слово, -1 == вставить в конец.
+        :return: коллекция, фильрованная по метру.
         """
         filtered_collection = dict()
         for short, freq in collection.items():
@@ -114,11 +112,11 @@ class Markov(CommonMixin):
     def generate_line(self, transitions, n_syllables, seed_short=None, metre_pattern=None):
         """
         Генерация одной строки с заданным количеством слогов.
-        :param transitions: переходы в цепи
-        :param n_syllables: количество слогов в строке
-        :param seed_short: короткая версия первого слова
-        :param metre_pattern: шаблон метра с длиной, равной количеству слогов в строке
-        :return: получившаяся строка
+        :param transitions: переходы в цепи.
+        :param n_syllables: количество слогов в строке.
+        :param seed_short: короткая версия первого слова.
+        :param metre_pattern: шаблон метра с длиной, равной количеству слогов в строке.
+        :return: получившаяся строка.
         """
         if seed_short is None:
             seed_short = choice(list(transitions.keys()), 1)[0]
@@ -151,10 +149,10 @@ class Markov(CommonMixin):
     def generate_poem(self, metre_schema="-+", rhyme_schema="abab", n_syllables=8):
         """
         Генерация стихотворения с выбранными параметрами.
-        :param metre_schema: схема метра
-        :param rhyme_schema: схема рифмы
-        :param n_syllables: количество слогов в строке
-        :return: стихотворение
+        :param metre_schema: схема метра.
+        :param rhyme_schema: схема рифмы.
+        :param n_syllables: количество слогов в строке.
+        :return: стихотворение.
         """
         metre_pattern = ""
         while len(metre_pattern) < n_syllables:
@@ -163,14 +161,14 @@ class Markov(CommonMixin):
 
         poem = ""
         unique_letters = list(set(list(rhyme_schema)))
-        rhyme_candidates = list(self.filter_by_metre(self.rhymes, metre_pattern, 2, n_syllables, -1).keys())
+        rhyme_candidates = list(self.filter_by_metre(self.rhymes.rhymes, metre_pattern, 2, n_syllables, -1).keys())
 
         letter_all_rhymes = {}
         for letter in unique_letters:
             letter_all_rhymes[letter] = []
             while len(letter_all_rhymes[letter]) < rhyme_schema.count(letter):
                 seed_rhyme = choice(rhyme_candidates, 1)[0]
-                rhyme_with_seed = set(self.filter_by_metre(self.rhymes[seed_rhyme], metre_pattern, 2, n_syllables, -1))
+                rhyme_with_seed = set(self.filter_by_metre(self.rhymes.rhymes[seed_rhyme], metre_pattern, 2, n_syllables, -1))
                 rhyme_with_seed.add(seed_rhyme)
                 letter_all_rhymes[letter] = list(rhyme_with_seed)
 

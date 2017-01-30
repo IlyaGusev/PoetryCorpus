@@ -1,0 +1,12 @@
+{% load add_class %}
+{% for field in form.visible_fields %}
+    <label for="{{field.id_for_label}}">{{ field.label }}:</label>
+    {{ field|add_class:"form-control" }}
+    {{ field.errors }}
+{% endfor %}
+{% for field in form.hidden_fields %}
+    <div style="display:none;">{{ field }}</div>
+{% endfor %}
+{% if form.errors %}
+    {{ form.non_field_errors }}
+{% endif %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block accents_active %} class="active" {% endblock %}
+{% block content %}
+<div class="page-header">
+    <h3>Определение ударения </h3>
+</div>
+<div class="row">
+    <div class="col-lg-8">
+        <form class="form-vertical text-center" id="accents_form" action="./{{ form.as_url_args }}" method="get">
+            {% include "form.html" %}
+             <br>
+            <button class="btn btn-primary" type="submit" id="gen_button">Определить ударение</button>
+        </form>
+        <div class="text-center">{{ accent }} буква </div>
+    </div>
+</div>
+{% endblock %}

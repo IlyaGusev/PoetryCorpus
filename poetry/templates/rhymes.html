@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block rhymes_active %} class="active" {% endblock %}
+{% block content %}
+<div class="page-header">
+    <h3>Поиск рифм </h3>
+</div>
+<div class="row">
+    <div class="col-lg-8">
+        <form class="form-vertical text-center" id="rhymes_form" action="./{{ form.as_url_args }}" method="get">
+            {% include "form.html" %}
+             <br>
+            <button class="btn btn-primary" type="submit" id="gen_button">Подобрать рифмы</button>
+        </form>
+        <div class="text-center">{{ rhymes }} </div>
+    </div>
+</div>
+{% endblock %}

@@ -18,6 +18,6 @@ class TestAccentClassifier(unittest.TestCase):
 
     def test_accent_classifier(self):
         self.assertEqual(len([0, 2, 2, 1, 2, 2, 2, 1, 2]),
-                         len(self.accent_classifier.classify_accent(
+                         len([self.accent_classifier.classify_accent(word) for word in
                              ["волки", "перелив", "карачун", "пипярка", "пепелац", "гиппогриф",
-                              "хвосторог", "стартап", "квинтолап"])))
+                              "хвосторог", "стартап", "квинтолап"]]))

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block analysis_active %} class="active" {% endblock %}
+{% block content %}
+<div class="page-header">
+    <h3>Анализ </h3>
+</div>
+<div class="row">
+    <div class="col-lg-8">
+        <form class="form-vertical text-center" id="analysis_form" action="./{{ form.as_url_args }}" method="get">
+            {% include "form.html" %}
+             <br>
+            <button class="btn btn-primary" type="submit" id="gen_button">Анализировать стихотворение</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

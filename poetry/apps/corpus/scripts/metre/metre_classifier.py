@@ -38,7 +38,7 @@ class MetreClassifier:
         если только эти ударения не подпадают под Исключение 1.
         Исключение 1: Ударения могут приходиться на слабое место,
         если безударный слог ТОГО ЖЕ слова не попадает на икт.
-        :return: лучший метр и его ошибки и исправления
+        :return: лучший метр, его ошибки и исправления.
         """
         # TODO: Дольник и тактовик, цезура и другие эффекты.
         # TODO: Рефакторинг.
@@ -89,10 +89,10 @@ class MetreClassifier:
                     number1 = result_additions[i]['syllable_number']
                     number2 = result_additions[j]['syllable_number']
                     if text1 == text2 and number1 != number2:
-                        accent = self.accent_classifier.classify_accent([text1, ])
-                        if accent[0] == number1:
+                        accent = self.accent_classifier.classify_accent(text1)
+                        if accent == number1:
                             self.after_ml.append(result_additions[i])
-                        if accent[0] == number2:
+                        if accent == number2:
                             self.after_ml.append(result_additions[j])
         return self.after_ml
 
@@ -121,3 +121,15 @@ class MetreClassifier:
                 if syllable.number == pos['syllable_number']:
                     syllable.accent = syllable.begin + get_first_vowel_position(syllable.text)
         return self.markup
+
+    @staticmethod
+    def improve_markup(markup, accents_classifier):
+        """
+        Улучшение разметки метрическим и машинным классификатором.
+        :param markup: начальная разметка.
+        :param accents_classifier: классификатор ударений.
+        """
+        classifier = MetreClassifier(markup, accents_classifier)
+        classifier.classify_metre()
+        classifier.get_ml_results()
+        return classifier.get_improved_markup()

@@ -12,6 +12,7 @@ from sklearn.model_selection import ShuffleSplit, cross_val_score
 
 from poetry.apps.corpus.scripts.preprocess import CYRRILIC_LOWER_CONSONANTS, CYRRILIC_LOWER_VOWELS, VOWELS
 from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry.apps.corpus.scripts.preprocess import get_first_vowel_position
 
 
 class AccentClassifier:
@@ -66,10 +67,8 @@ class AccentClassifier:
             del train_data
             gc.collect()
 
-    def classify_accent(self, words):
-        answers = []
-        for word in words:
-            syllables = Phonetics.get_word_syllables(word)
-            answer = self.classifiers[len(syllables)].predict(np.array(self.generate_sample(syllables)).reshape(1, -1))
-            answers.append(answer[0])
-        return answers
+    def classify_accent(self, word):
+        syllables = Phonetics.get_word_syllables(word)
+        answer = self.classifiers[len(syllables)].predict(np.array(self.generate_sample(syllables)).reshape(1, -1))
+        syllable = syllables[answer[0]]
+        return get_first_vowel_position(syllable.text) + syllable.begin

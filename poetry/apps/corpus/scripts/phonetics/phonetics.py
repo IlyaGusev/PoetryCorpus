@@ -2,8 +2,6 @@
 # Автор: Гусев Илья
 # Описание: Модуль разбивки на слоги, проставления ударений и получения начальной разметки.
 
-from collections import Counter
-from collections import defaultdict
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Syllable, Word, Markup, Line
 from poetry.apps.corpus.scripts.preprocess import count_vowels, get_first_vowel_position, \
     VOWELS, CLOSED_SYLLABLE_CHARS
@@ -11,7 +9,7 @@ from poetry.apps.corpus.scripts.preprocess import count_vowels, get_first_vowel_
 
 class Phonetics:
     """
-    Класс-механизм для фонетического анализа слова.
+    Класс-механизм для фонетического анализа слов.
     """
     @staticmethod
     def get_word_syllables(word):
@@ -104,84 +102,6 @@ class Phonetics:
         }
 
     @staticmethod
-    def get_rhyme_profile(word):
-        """
-        Получение профиля рифмовки (набора признаков для сопоставления)
-        :param word: уже акцентуированное слово (Word)
-        :return profile: профиль рифмовки
-        """
-        # TODO: Переход на фонетическое слово, больше признаков.
-        syllable_number = 0
-        accented_syllable = ''
-        next_syllable = ''
-        next_char = ''
-        syllables = list(reversed(word.syllables))
-        for i in range(len(syllables)):
-            syllable = syllables[i]
-            if syllable.accent != -1:
-                if i != 0:
-                    next_syllable = syllables[i-1].text
-                accented_syllable = syllables[i].text
-                if syllable.accent+1 < len(word.text):
-                    next_char = word.text[syllable.accent+1]
-                syllable_number = i
-                break
-        return syllable_number, accented_syllable, next_syllable, next_char
-
-    @staticmethod
-    def is_rhyme(word1, word2, score_border=4, syllable_number_border=2):
-        """
-        Проверка рифмованности 2 слов.
-        :param word1: первое слово для проверки рифмы, уже акцентуированное (Word)
-        :param word2: второе слово для проверки рифмы, уже акцентуированное (Word)
-        :param score_border: граница определния рифмы, чем выше, тем строже совпадение
-        :param syllable_number_border: ограничение на номер слога с конца, на который падает ударение
-        :return result: является рифмой или нет
-        """
-        features1 = Phonetics.get_rhyme_profile(word1)
-        features2 = Phonetics.get_rhyme_profile(word2)
-        count_equality = 0
-        for i in range(len(features1[1])):
-            for j in range(i, len(features2[1])):
-                if features1[1][i] == features2[1][j]:
-                    if features1[1][i] in VOWELS:
-                        count_equality += 3
-                    else:
-                        count_equality += 1
-        if features1[2] == features2[2] and features1[2] != '':
-            count_equality += 2
-        elif features1[3] == features2[3] and features1[3] != '':
-            count_equality += 1
-        return features1[0] == features2[0] and count_equality >= score_border and \
-               features1[0] <= syllable_number_border
-
-    @staticmethod
-    def get_all_rhymes(markup, short_words, border=4):
-        """
-        Получение всех рифм в разметке
-
-        :param markup: разметка
-        :param short_words: сопоставление коротких версии слов в разметке с нормальными версиями.
-        :param border: граница определния рифмы, чем выше, тем строже совпадение
-        :return result: словарь всех рифм, в коротком предсатвлении
-        """
-        rhymes = defaultdict(Counter)
-        rhyme_candidates = []
-        for line in markup.lines:
-            if len(line.words) != 0:
-                rhyme_candidates.append(line.words[-1])
-        for i in range(len(rhyme_candidates)):
-            for j in range(i+1, len(rhyme_candidates)):
-                words = (rhyme_candidates[i], rhyme_candidates[j])
-                if Phonetics.is_rhyme(words[0], words[1], border):
-                    shorts = (words[0].get_short(), words[1].get_short())
-                    short_words[shorts[0]] = words[0]
-                    short_words[shorts[1]] = words[1]
-                    for item in [shorts, tuple(reversed(shorts))]:
-                        rhymes[item[0]][item[1]] += 1
-        return rhymes
-
-    @staticmethod
     def process_text(text, accents_dict):
         """
         Получение начального варианта разметки по слогам и ударениям.
@@ -218,3 +138,26 @@ class Phonetics:
         if begin_line != len(text):
             lines.append(Line(begin_line, len(text), text[begin_line:len(text)], words))
         return Markup(text, lines)
+
+    @staticmethod
+    def get_improved_word_accent(word, accent_dict, accent_classifier):
+        """
+        Получение ударения с учётом классификатора.
+        :param word: слово.
+        :param accent_dict: словарь ударений.
+        :param accent_classifier: классификатор ударений.
+        :return: индекс ударения.
+        """
+        dict_accents = Phonetics.get_word_accent(word, accent_dict)
+        if len(dict_accents) == 1:
+            return dict_accents[0]
+        elif len(dict_accents) == 0:
+            clf_accent = accent_classifier.classify_accent(word)
+            return clf_accent
+        else:
+            clf_accent = accent_classifier.classify_accent(word)
+            intersection = list(set(dict_accents).intersection([clf_accent, ]))
+            if len(intersection) != 0:
+                return intersection[0]
+            else:
+                return dict_accents[0]
