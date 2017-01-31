@@ -34,23 +34,11 @@ class Markov(CommonMixin):
             root = etree.parse(os.path.join(BASE_DIR, "datasets", "corpus", "all.xml")).getroot()
             for item in root.findall("./item"):
                 if item.find("./author").text == "Александр Пушкин":
-                    self.process_text(item.find("./text").text, accents_dict, accents_classifier)
+                    markup, result = MetreClassifier.improve_markup(
+                        Phonetics.process_text(item.find("./text").text, accents_dict), accents_classifier)
+                    self.add_markup(markup)
             with open(dump_filename, "wb") as f:
                 pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
-
-    def process_text(self, text, accents_dict, accents_classifier):
-        """
-        Автоматическая разметка сырого текста.
-        :param text: сам текст.
-        :param accents_dict: словарь ударений.
-        :param accents_classifier: классификатор ударений.
-        """
-        markup = Phonetics.process_text(text, accents_dict)
-        classifier = MetreClassifier(markup, accents_classifier)
-        classifier.classify_metre()
-        classifier.get_ml_results()
-        markup = classifier.get_improved_markup()
-        self.add_markup(markup)
 
     def generate_chain(self, words):
         """

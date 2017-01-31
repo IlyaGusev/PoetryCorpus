@@ -17,6 +17,7 @@ from poetry.apps.corpus.scripts.phonetics.accent_classifier import AccentClassif
 from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
 from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
 
+
 class Global:
     accent_dict = None
     accent_classifier = None
@@ -97,10 +98,12 @@ class MarkupView(DetailView):
         context = super(MarkupView, self).get_context_data(**kwargs)
         markup = self.get_object()
         m = Markup()
-        m.from_xml(markup.text)
+        m.from_json(markup.text)
         context['text'] = process_markup(m)
         context['poem'] = markup.poem
         context['poem'].name = markup.poem.get_name()
+        context['lines_count'] = markup.poem.count_lines()
+        context['additional'] = markup.get_automatic_additional()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -109,8 +112,7 @@ class MarkupView(DetailView):
 
             m = self.get_object()
             poem = m.poem
-            markup = Markup()
-            markup.from_xml(m.text)
+            markup = poem.get_markup()
 
             for diff in diffs:
                 l = int(diff.split('-')[0])
@@ -161,7 +163,6 @@ class AccentsView(FormView):
     def get_context_data(self, **kwargs):
         context = super(AccentsView, self).get_context_data(**kwargs)
         word = self.request.GET.get('word', "")
-        print(word)
         if word != "":
             context['accent'] = Phonetics.get_improved_word_accent(word, Global.get_dict(), Global.get_classifier()) + 1
         return context

@@ -4,12 +4,12 @@
 
 import xml.etree.ElementTree as etree
 from dicttoxml import dicttoxml
+import json
 
 
 def to_dict(obj):
     """
     Преобразование объекта в словарь.
-
     :param obj: объект, который нужно превратить в словарь
     :return data: получившийся словарь
     """
@@ -66,6 +66,10 @@ class Syllable(CommonMixin):
         self.text = text
         self.accent = accent
 
+    def from_dict(self, d):
+        self.__dict__.update(d)
+        return self
+
 
 class Word(CommonMixin):
     """
@@ -90,6 +94,12 @@ class Word(CommonMixin):
     def __hash__(self):
         return hash(self.get_short())
 
+    def from_dict(self, d):
+        self.__dict__.update(d)
+        syllables = [Syllable(0, 0, 0, "") for syllable in self.syllables]
+        self.syllables = [syllables[i].from_dict(self.syllables[i]) for i in range(len(syllables))]
+        return self
+
 
 class Line(CommonMixin):
     """
@@ -101,16 +111,32 @@ class Line(CommonMixin):
         self.text = text
         self.words = words
 
+    def from_dict(self, d):
+        self.__dict__.update(d)
+        words = [Word(0, 0, "", []) for word in self.words]
+        self.words = [words[i].from_dict(self.words[i]) for i in range(len(words))]
+        return self
+
 
 class Markup(CommonMixin):
     """
-    Класс данных для разметки в целом с экспортом/импортом в XML.
+    Класс данных для разметки в целом с экспортом/импортом в XML и JSON.
     """
     def __init__(self, text=None, lines=None):
         # TODO: При изменении структуры разметки менять десериализацию.
         self.text = text
         self.lines = lines
         self.version = 2
+
+    def to_json(self):
+        return json.dumps(self.to_dict(), ensure_ascii=False)
+
+    def from_json(self, st):
+        d = json.loads(st)
+        self.__dict__.update(d)
+        lines = [Line(0, 0, "", []) for line in self.lines]
+        self.lines = [lines[i].from_dict(self.lines[i]) for i in range(len(lines))]
+        return self
 
     def to_xml(self):
         """

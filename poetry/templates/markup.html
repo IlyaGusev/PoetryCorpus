@@ -63,7 +63,8 @@
 
 <div class="col-lg-3">
     <h4>Доп. информация</h4>
-    {{ markup.additional|linebreaksbr }}
+    <p>Строк: {{lines_count}}</p>
+    {{ markup.get_automatic_additional|linebreaksbr }}
 </div>
 
 {% csrf_token %}

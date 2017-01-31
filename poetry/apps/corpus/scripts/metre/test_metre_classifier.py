@@ -22,16 +22,25 @@ class TestMetreClassifier(unittest.TestCase):
                "Уж на равнине, по холмам\n" \
                "Грохочут пушки. Дым багровый\n" \
                "Кругами всходит к небесам."
-        clf = MetreClassifier(Phonetics.process_text(text, self.accent_dict))
-        result_metre = clf.classify_metre()
+        result_metre = MetreClassifier.classify_metre(Phonetics.process_text(text, self.accent_dict)).metre
         self.assertEqual(result_metre, "iambos")
 
         text = "Буря мглою небо кроет,\n" \
                "Вихри снежные крутя;\n" \
                "То, как зверь, она завоет,\n" \
                "То заплачет, как дитя..."
-        clf = MetreClassifier(Phonetics.process_text(text, self.accent_dict))
-        result_metre = clf.classify_metre()
+        result_metre = MetreClassifier.classify_metre(Phonetics.process_text(text, self.accent_dict)).metre
         self.assertEqual(result_metre, "choreios")
 
-        clf.get_improved_markup()
+        text = "На стеклах нарастает лед,\n"\
+               "Часы твердят: «Не трусь!»\n"\
+               "Услышать, что ко мне идет,\n"\
+               "И мертвой я боюсь.\n"\
+               "Как идола, молю я дверь;\n"\
+               "«Не пропускай беду!»\n"\
+               "Кто воет за стеной, как зверь,\n"\
+               "Кто прячется в саду?"
+        result_metre = MetreClassifier.classify_metre(Phonetics.process_text(text, self.accent_dict)).metre
+        self.assertEqual(result_metre, "iambos")
+
+        MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))

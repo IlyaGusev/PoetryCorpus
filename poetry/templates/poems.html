@@ -11,14 +11,18 @@
             <table class="table table-hover">
                 <thead>
                     <th width="25%">Автор</th>
-                    <th width="60%">Название</th>
-                    <th width="20%" class="text-center">Размечено вручную?</th>
+                    <th width="45%">Название</th>
+                    <th width="10%" class="text-center">Количество строк</th>
+                    <th width="10%" class="text-center">Количество ошибок</th>
+                    <th width="10%%" class="text-center">Размечено вручную?</th>
                 </thead>
                 {% for poem in poems %}
                 <tr>
                     <td>{{ poem.author }}</td>
                     <td><a href="{% url 'corpus:markup' pk=poem.markups.all.0.pk %}">{{ poem.name }}</a></td>
-                    <td  class="text-center">{% if poem.count_manual_markups != 0 %}
+                    <td class="text-center">{{ poem.count_lines}}</td>
+                    <td class="text-center">{{ poem.count_automatic_errors }}</td>
+                    <td class="text-center">{% if poem.count_manual_markups != 0 %}
                         <i class="fa fa-check green" aria-hidden="true"></i>{% endif %}</td>
                 </tr>
                 {% endfor %}

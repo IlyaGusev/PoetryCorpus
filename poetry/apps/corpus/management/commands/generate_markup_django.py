@@ -44,36 +44,9 @@ class Command(BaseCommand):
             f.write("[")
             for p in poems:
                 markup = Phonetics.process_text(p.text, accents_dict)
-                classifier = MetreClassifier(markup, accents_classifier)
-                metre = classifier.classify_metre()
-                classifier.get_ml_results()
-                markup = classifier.get_improved_markup()
-                rhymes = Phonetics.get_all_rhymes(markup, {}, 4)
-
-                additional = list()
-                lines = []
-                for word1, pair in rhymes.items():
-                    line = [word1]
-                    for word2, freq in pair.items():
-                        line.append(word2)
-                    lines.append(" - ".join(line))
-                additional.append("Метр: " + str(metre))
-                additional.append("Снятая омография: \n" +
-                                  "\n".join([str((item['word_text'], item['syllable_number']))
-                                             for item in classifier.omograph_resolutions[metre]]))
-                additional.append("Неправильные ударения: \n" +
-                                  "\n".join([str((item['word_text'], item['syllable_number']))
-                                             for item in classifier.corrected_accents[metre]]))
-                additional.append("Новые ударения: \n" +
-                                  "\n".join([str((item['word_text'], item['syllable_number']))
-                                             for item in classifier.additions[metre]]))
-                additional.append("ML: \n" +
-                                  "\n".join([str((item['word_text'], item['syllable_number']))
-                                             for item in classifier.after_ml]))
-                additional.append("Рифмы: \n" + "\n".join(lines))
-                additional = "\n".join(additional)
-                text = markup.to_xml().replace("\n", "\\n").replace('"', '\\"').replace("\t", "\\t")
-                additional = additional.replace("\n", "\\n").replace('"', '\\"').replace("\t", "\\t")
+                markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
+                text = markup.to_json().replace("\n", "\\n").replace('\\', '\\\\').replace('"', '\\"').replace("\t", "\\t")
+                additional = result.to_json().replace("\n", "\\n").replace('\\', '\\\\').replace('"', '\\"').replace("\t", "\\t")
 
                 json = '{"model": "corpus.Markup", "fields": {' + \
                         '"text": "' + text + '", ' + \

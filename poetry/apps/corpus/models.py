@@ -1,6 +1,7 @@
 from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, DateTimeField
 from django.core.urlresolvers import reverse
-
+from poetry.apps.corpus.scripts.phonetics import phonetics_markup
+from poetry.apps.corpus.scripts.metre.metre_classifier import ClassificationResult
 
 class Theme(Model):
     theme = CharField("Тема", max_length=50, blank=False)
@@ -34,6 +35,14 @@ class Poem(Model):
             name = name[:i+1]
         return name
 
+    def count_lines(self):
+        return len(self.text.rstrip().split("\n"))
+
+    def count_automatic_errors(self):
+        for markup in self.markups.all():
+            if markup.author == "Automatic":
+                return markup.get_automatic_additional().get_metre_errors_count()
+
     def get_absolute_url(self):
         if len(self.markups.all()) != 0:
             return self.markups.all()[0].get_absolute_url()
@@ -59,6 +68,16 @@ class Markup(Model):
     def get_absolute_url(self):
         return reverse("corpus:markup", kwargs={"pk": self.pk})
 
+    def get_markup(self):
+        markup = phonetics_markup.Markup()
+        markup.from_json(self.text)
+        return markup
+
+    def get_automatic_additional(self):
+        clf = ClassificationResult()
+        clf.from_json(self.additional)
+        return clf
+
     class Meta:
         verbose_name = "Разметка"
         verbose_name_plural = "Разметки"
@@ -81,7 +100,7 @@ class GenerationSettings(Model):
 class AutomaticPoem(Model):
     text = TextField("Текст", blank=False)
     date = DateTimeField("Дата и время генерации")
-    settings = ForeignKey(GenerationSettings, related_name="settings", verbose_name="Настройки")
+    settings = ForeignKey(GenerationSettings, related_name="poems", verbose_name="Настройки")
 
     def __str__(self):
         return 'Сгенерированное стихотворение ' + str(self.date)
