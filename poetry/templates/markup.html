@@ -65,6 +65,9 @@
     <h4>Доп. информация</h4>
     <p>Строк: {{lines_count}}</p>
     {{ markup.get_automatic_additional|linebreaksbr }}
+     {% for rhyme in rhymes %}
+        <p>{{rhyme}}</p>
+    {% endfor %}
 </div>
 
 {% csrf_token %}

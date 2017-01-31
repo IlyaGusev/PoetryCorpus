@@ -104,6 +104,9 @@ class MarkupView(DetailView):
         context['poem'].name = markup.poem.get_name()
         context['lines_count'] = markup.poem.count_lines()
         context['additional'] = markup.get_automatic_additional()
+        rhymes = Rhymes()
+        rhymes.add_markup(m)
+        context['rhymes'] = [(key, list(value.keys())) for key, value in rhymes.rhymes.items()]
         return context
 
     def post(self, request, *args, **kwargs):
@@ -127,7 +130,7 @@ class MarkupView(DetailView):
                             syllable.accent = syllable.begin + i
 
             m = poetry.apps.corpus.models.Markup()
-            m.text = markup.to_xml()
+            m.text = markup.to_json()
             m.author = request.user.email
             m.poem = poem
             m.save()
