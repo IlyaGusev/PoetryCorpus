@@ -14,17 +14,14 @@ class Command(BaseCommand):
     help = 'Automatic markup update'
 
     def handle(self, *args, **options):
-        accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
+        accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
         accents_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accents_dict)
         i = 1
         with open(os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml"), "wb") as f:
             f.write(b'<?xml version="1.0" encoding="UTF-8"?><items>')
             for p in Poem.objects.all():
                 markup = Phonetics.process_text(p.text, accents_dict)
-                classifier = MetreClassifier(markup, accents_classifier)
-                classifier.classify_metre()
-                classifier.get_ml_results()
-                markup = classifier.get_improved_markup()
+                markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
                 xml = markup.to_xml().encode('utf-8').replace(b'<?xml version="1.0" encoding="UTF-8" ?>', b'')\
                     .decode('utf-8').replace("\n", "\\n").replace('"', '\\"').replace("\t", "\\t").encode('utf-8')
                 f.write(xml)

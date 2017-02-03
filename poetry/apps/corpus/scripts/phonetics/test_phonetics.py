@@ -14,7 +14,7 @@ from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Syllable, Word
 class TestPhonetics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
+        cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
 
     def test_syllables(self):
         checks = {

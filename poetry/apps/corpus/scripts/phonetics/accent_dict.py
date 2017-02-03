@@ -21,12 +21,12 @@ class AccentDict:
         Загрузка словаря из файла. Если уже есть его сериализация в .trie файле, берём из него.
         :param filename: имя файла с оригинальным словарём.
         """
-        dump_file = os.path.splitext(filename)[0] + '.trie'
+        dump_file = filename + '.trie'
 
         if os.path.isfile(dump_file):
             self.data = datrie.Trie.load(dump_file)
         else:
-            with open(filename, 'r', encoding='utf-8') as f:
+            with open(filename+".txt", 'r', encoding='utf-8') as f:
                 lines = f.readlines()
                 for line in lines:
                     for word in line.split("#")[1].split(","):
@@ -45,6 +45,10 @@ class AccentDict:
                             pos += 1
                         self.update(clean_word, accents)
             self.data.save(dump_file)
+
+    def save(self, filename):
+        dump_file = os.path.splitext(filename)[0] + '.trie'
+        self.data.save(dump_file)
 
     def get_accents(self, word):
         """

@@ -12,6 +12,6 @@ class Command(BaseCommand):
     help = 'Automatic markup update'
 
     def handle(self, *args, **options):
-        accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
+        accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
         accents_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accents_dict)
         Markov(accents_dict, accents_classifier)

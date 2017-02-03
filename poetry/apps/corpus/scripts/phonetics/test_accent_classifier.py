@@ -13,7 +13,7 @@ from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
 class TestAccentClassifier(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
+        cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
         cls.accent_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), cls.accent_dict)
 
     def test_accent_classifier(self):

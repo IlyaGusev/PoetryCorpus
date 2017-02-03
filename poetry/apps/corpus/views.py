@@ -27,7 +27,7 @@ class Global:
     @classmethod
     def get_dict(cls):
         if cls.accent_dict is None:
-            cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict.txt"))
+            cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
         return cls.accent_dict
 
     @classmethod

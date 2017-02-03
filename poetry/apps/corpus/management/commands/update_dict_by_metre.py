@@ -11,7 +11,7 @@ from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
 
 
 class Command(BaseCommand):
-    help = 'Automatic markup dump for Django'
+    help = 'Dict update by classification'
 
     def add_arguments(self, parser):
         # Named (optional) arguments
@@ -25,39 +25,32 @@ class Command(BaseCommand):
                             dest='to',
                             default=None,
                             help='End')
+        parser.add_argument('--border',
+                            action='store',
+                            dest='border',
+                            default=1,
+                            help='Error border')
 
     def handle(self, *args, **options):
         accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
         accents_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), accents_dict)
-        i = 1
         poems = Poem.objects.all()
         begin = int(options.get('from'))
         end = int(options.get('to')) if options.get('to') is not None else len(poems)
+        border = int(options.get('border'))
 
+        i = 0
         poems = Poem.objects.all()[begin:end]
-        filename = os.path.join(BASE_DIR, "datasets", "django", "markup_django.json")
-        try:
-            os.remove(filename)
-        except OSError:
-            pass
-        with open(filename, "a+", encoding='utf-8') as f:
-            f.write("[")
-            for p in poems:
-                markup = Phonetics.process_text(p.text, accents_dict)
-                markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
-                text = markup.to_json().replace("\n", "\\n").replace('\\', '\\\\').replace('"', '\\"').replace("\t", "\\t")
-                additional = result.to_json().replace("\n", "\\n").replace('\\', '\\\\').replace('"', '\\"').replace("\t", "\\t")
+        for p in poems:
+            markup = Phonetics.process_text(p.text, accents_dict)
+            markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
+            if result.get_metre_errors_count() <= border:
+                for addition in result.additions[result.metre]:
+                    accents_dict.update(addition['word_text'].lower(), {addition['accent'], })
+                for correction in result.corrections[result.metre]:
+                    accents_dict.update(correction['word_text'].lower(), {correction['accent'], })
+            i += 1
+            if i % 100 == 0:
+                print(i)
+        accents_dict.save(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict_modified"))
 
-                json = '{"model": "corpus.Markup", "fields": {' + \
-                        '"text": "' + text + '", ' + \
-                        '"poem": ' + str(p.pk) + ', ' + \
-                        '"author": "Automatic", ' + \
-                        '"additional": "' + additional + '"}},'
-                f.write(json)
-                i += 1
-                if i % 100 == 0:
-                    print(i)
-            f.seek(0, 2)
-            size = f.tell()
-            f.truncate(size - 1)
-            f.write(']')

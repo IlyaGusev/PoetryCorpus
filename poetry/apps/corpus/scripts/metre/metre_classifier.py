@@ -7,6 +7,9 @@ from poetry.apps.corpus.scripts.preprocess import get_first_vowel_position
 
 
 class ClassificationResult(object):
+    """
+    Результат классификации по метру.
+    """
     def __init__(self):
         self.metre = None
         self.errors_count = {k: 0 for k in MetreClassifier.metres.keys()}
@@ -82,18 +85,20 @@ class MetreClassifier(object):
                                     continue
                                 other_number_in_pattern = other_syllable.number - syllable.number + number_in_pattern
                                 if pattern[other_number_in_pattern] == "+":
+                                    accent = get_first_vowel_position(other_syllable.text) + other_syllable.begin
                                     correction = {'line_number': l, 'word_number': w,
                                                   'syllable_number': other_syllable.number,
-                                                  'word_text': word.text}
+                                                  'word_text': word.text, 'accent': accent}
                                     if accents_count == 1 and other_syllable.accent == -1:
                                         result.corrections[metre_name].append(correction)
                                     else:
                                         result.resolutions[metre_name].append(correction)
                         if accents_count == 0:
                             if pattern[number_in_pattern] == "+":
+                                accent = get_first_vowel_position(syllable.text) + syllable.begin
                                 addition = {'line_number': l, 'word_number': w,
                                             'syllable_number': syllable.number,
-                                            'word_text': word.text}
+                                            'word_text': word.text, 'accent': accent}
                                 result.additions[metre_name].append(addition)
                         number_in_pattern += 1
 
