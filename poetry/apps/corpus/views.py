@@ -11,6 +11,7 @@ from poetry.apps.corpus.forms import GeneratorForm, AccentsForm, RhymesForm, Ana
 from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem
 from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
+from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
 from poetry.apps.corpus.scripts.preprocess import VOWELS
 from poetry.apps.corpus.scripts.generate.markov import Markov
 from poetry.apps.corpus.scripts.phonetics.accent_classifier import AccentClassifier
@@ -179,8 +180,9 @@ class RhymesView(FormView):
     def get_context_data(self, **kwargs):
         context = super(RhymesView, self).get_context_data(**kwargs)
         word = self.request.GET.get('word', "")
-        if word != "":
-            context['rhymes'] = Global.get_rhymes().get_word_rhymes(word, Global.get_dict(), Global.get_classifier())
+        if word == "":
+            return context
+        context['rhymes'] = Global.get_rhymes().get_word_rhymes(word, Global.get_dict(), Global.get_classifier())
         return context
 
 
@@ -188,3 +190,14 @@ class AnalysisView(FormView):
     template_name = "analysis.html"
     success_url = reverse_lazy("corpus:analysis")
     form_class = AnalysisForm
+
+    def get_context_data(self, **kwargs):
+        context = super(AnalysisView, self).get_context_data(**kwargs)
+        text = self.request.GET.get('text', "")
+        if text == "":
+            return context
+        markup = Phonetics.process_text(text, Global.get_dict())
+        markup, result = MetreClassifier.improve_markup(markup, Global.get_classifier())
+        context['accented_text'] = process_markup(markup)
+        context['additional'] = result
+        return context

@@ -11,6 +11,12 @@
              <br>
             <button class="btn btn-primary" type="submit" id="gen_button">Анализировать стихотворение</button>
         </form>
+        <div style="font-size: 20px; text-align: center;padding-top:20px;">
+            {% include "accented.html" with text=accented_text %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        {{ additional|linebreaksbr }}
     </div>
 </div>
 {% endblock %}

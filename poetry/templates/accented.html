@@ -1,0 +1,31 @@
+{% for line in text %}
+    <p id="{{ forloop.counter0 }}" class="line">
+    {% spaceless %}
+    {% for word in line %}
+        {% if word.word_number != -1 and word.word.syllables|length != 0 %}
+        <span id="{{forloop.parentloop.counter0}}-{{ word.word_number }}" class="word">
+            {% for syllable in word.word.syllables %}
+                <a id="{{forloop.parentloop.parentloop.counter0}}-{{ word.word_number }}-{{ forloop.counter0 }}"
+                    class="syllable
+                    {% if syllable.accent != -1 %}
+                        {% if syllable.omography %}
+                        bck red
+                        {% else %}
+                        bck green
+                        {% endif %}
+                    {% else %}
+                        {% if syllable.no_accents %}
+                        bck red
+                        {% else %}
+                        bck default
+                        {% endif %}
+                    {% endif %}">{{syllable.text}}</a>
+            {%  endfor %}
+        </span>
+        {% else %}
+            <span>{% ifequal word.word.text " " %}&nbsp;{% else %}{{ word.word.text }}{% endifequal %}</span>
+        {%  endif %}
+    {%  endfor %}
+    {% endspaceless %}
+    </p>
+{% endfor %}

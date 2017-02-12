@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from poetry.apps.corpus.scripts.phonetics import phonetics_markup
 from poetry.apps.corpus.scripts.metre.metre_classifier import ClassificationResult
 
+
 class Theme(Model):
     theme = CharField("Тема", max_length=50, blank=False)
 
