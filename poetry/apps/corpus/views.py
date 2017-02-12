@@ -115,7 +115,7 @@ class MarkupView(DetailView):
 
             m = self.get_object()
             poem = m.poem
-            markup = poem.get_markup()
+            markup = m.get_markup()
 
             for diff in diffs:
                 l = int(diff.split('-')[0])

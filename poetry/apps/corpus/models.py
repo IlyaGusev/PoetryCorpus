@@ -48,6 +48,12 @@ class Poem(Model):
             return self.markups.all()[0].get_absolute_url()
         return reverse("corpus:poems")
 
+    def get_automatic_markup(self):
+        for markup in self.markups.all():
+            if markup.author == "Automatic":
+                return markup
+        return None
+
     def count_manual_markups(self):
         return sum([int(markup.author != "Automatic") for markup in self.markups.all()])
 
@@ -75,8 +81,11 @@ class Markup(Model):
 
     def get_automatic_additional(self):
         clf = ClassificationResult()
-        clf.from_json(self.additional)
-        return clf
+        if self.additional:
+            clf.from_json(self.additional)
+            return clf
+        else:
+            return ""
 
     class Meta:
         verbose_name = "Разметка"
