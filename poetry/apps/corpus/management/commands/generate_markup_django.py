@@ -43,6 +43,7 @@ class Command(BaseCommand):
         with open(filename, "a+", encoding='utf-8') as f:
             f.write("[")
             for p in poems:
+                print(p.text)
                 markup = Phonetics.process_text(p.text, accents_dict)
                 markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
                 text = markup.to_json().replace("\n", "\\n").replace('\\', '\\\\').replace('"', '\\"').replace("\t", "\\t")
@@ -55,8 +56,7 @@ class Command(BaseCommand):
                         '"additional": "' + additional + '"}},'
                 f.write(json)
                 i += 1
-                if i % 100 == 0:
-                    print(i)
+                print(i)
             f.seek(0, 2)
             size = f.tell()
             f.truncate(size - 1)

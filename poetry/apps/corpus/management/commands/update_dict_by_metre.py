@@ -44,11 +44,12 @@ class Command(BaseCommand):
         for p in poems:
             markup = Phonetics.process_text(p.text, accents_dict)
             markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
-            if result.get_metre_errors_count() <= border:
-                for addition in result.additions[result.metre]:
-                    accents_dict.update(addition['word_text'].lower(), {addition['accent'], })
-                for correction in result.corrections[result.metre]:
-                    accents_dict.update(correction['word_text'].lower(), {correction['accent'], })
+            if result.metre in ["iambos", "choreios", "daktylos", "amphibrachys", "anapaistos"]:
+                if result.get_metre_errors_count() <= border:
+                    for addition in result.additions[result.metre]:
+                        accents_dict.update(addition['word_text'].lower(), {addition['accent'], })
+                    for correction in result.corrections[result.metre]:
+                        accents_dict.update(correction['word_text'].lower(), {correction['accent'], })
             i += 1
             if i % 100 == 0:
                 print(i)
