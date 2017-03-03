@@ -164,6 +164,20 @@ class Corpus:
             content = content[:-1] + ']'
             f.write(content)
 
+    def print_statistics(self):
+        print("Example:", self.data[0])
+        print("Invalid: ", self.invalid_count)
+        print("Duplicates: ", self.duplicates_count)
+        print("Concatenated: ", self.concatenated_count)
+        print("Total chars: ", sum([len(elem['text']) for elem in self.data]))
+        print("Total words: ", sum([len(elem['text'].split()) for elem in self.data]))
+        print("Total poems after deduplication: ", len(self.data))
+        print("Total poems with themes: ", len([elem for elem in self.data if len(elem['themes']) != 0]))
+        authors = set()
+        for elem in self.data:
+            authors.add(normilize_line(elem['author']))
+        print("Total authors: ", len(authors))
+
 
 def main():
     corpus = Corpus()
@@ -211,22 +225,9 @@ def main():
         corpus.process_file(filename, './/item', fields)
 
     corpus.clean_duplicates()
-
-    # Statistics
-    print("Example:", corpus.data[0])
-    print("Invalid: ", corpus.invalid_count)
-    print("Duplicates: ", corpus.duplicates_count)
-    print("Concatenated: ", corpus.concatenated_count)
-    print("Total chars: ", sum([len(elem['text']) for elem in corpus.data]))
-    print("Total words: ", sum([len(elem['text'].split()) for elem in corpus.data]))
-    print("Total poems after deduplication: ", len(corpus.data))
-    print("Total poems with themes: ", len([elem for elem in corpus.data if len(elem['themes']) != 0]))
-    authors = set()
-    for elem in corpus.data:
-        authors.add(normilize_line(elem['author']))
-    print("Total authors: ", len(authors))
-
+    corpus.print_statistics()
     corpus.to_xml(os.path.join(BASE_DIR, "datasets", "corpus", "all.xml"))
     corpus.to_django(os.path.join(BASE_DIR, "datasets", "django", "all_django.json"),
                      os.path.join(BASE_DIR, "datasets", "django", "themes_django.json"), fields)
+
 main()

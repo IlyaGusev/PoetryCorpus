@@ -6,6 +6,8 @@ import xml.etree.ElementTree as etree
 from dicttoxml import dicttoxml
 import json
 
+from poetry.apps.corpus.scripts.preprocess import get_first_vowel_position
+
 
 def to_dict(obj):
     """
@@ -66,6 +68,9 @@ class Syllable(CommonMixin):
         self.text = text
         self.accent = accent
 
+    def vowel(self):
+        return get_first_vowel_position(self.text) + self.begin
+
     def from_dict(self, d):
         self.__dict__.update(d)
         return self
@@ -81,7 +86,10 @@ class Word(CommonMixin):
         self.text = text
         self.syllables = syllables
 
-    def get_accent(self):
+    def count_accents(self):
+        return sum(syllable.accent != -1 for syllable in self.syllables)
+
+    def accent(self):
         accent = -1
         for syllable in self.syllables:
             if syllable.accent != -1:
@@ -89,7 +97,7 @@ class Word(CommonMixin):
         return accent
 
     def get_short(self):
-        return self.text.lower() + str(self.get_accent())
+        return self.text.lower() + str(self.accent())
 
     def __hash__(self):
         return hash(self.get_short())
@@ -152,26 +160,26 @@ class Markup(CommonMixin):
         :return self: получившийся объект Markup
         """
         root = etree.fromstring(xml)
-        if root.find("version") is not None and int(root.find("version").text) == 2:
-            lines_node = root.find("lines")
-            lines = []
-            for line_node in lines_node.findall("item"):
-                words_node = line_node.find("words")
-                words = []
-                for word_node in words_node.findall("item"):
-                    syllables_node = word_node.find("syllables")
-                    syllables = []
-                    for syllable_node in syllables_node.findall("item"):
-                        syllables.append(Syllable(int(syllable_node.find("begin").text),
-                                                  int(syllable_node.find("end").text),
-                                                  int(syllable_node.find("number").text),
-                                                  syllable_node.find("text").text,
-                                                  int(syllable_node.find("accent").text)))
-                    words.append(Word(int(word_node.find("begin").text), int(word_node.find("end").text),
-                                      word_node.find("text").text, syllables))
-                lines.append(Line(int(line_node.find("begin").text), int(line_node.find("end").text),
-                                  line_node.find("text").text, words))
-            self.text = root.find("text").text
-            self.lines = lines
-            return self
-        return None
+        if root.find("version") is None or int(root.find("version").text) != self.version:
+            return None
+        lines_node = root.find("lines")
+        lines = []
+        for line_node in lines_node.findall("item"):
+            words_node = line_node.find("words")
+            words = []
+            for word_node in words_node.findall("item"):
+                syllables_node = word_node.find("syllables")
+                syllables = []
+                for syllable_node in syllables_node.findall("item"):
+                    syllables.append(Syllable(int(syllable_node.find("begin").text),
+                                              int(syllable_node.find("end").text),
+                                              int(syllable_node.find("number").text),
+                                              syllable_node.find("text").text,
+                                              int(syllable_node.find("accent").text)))
+                words.append(Word(int(word_node.find("begin").text), int(word_node.find("end").text),
+                                  word_node.find("text").text, syllables))
+            lines.append(Line(int(line_node.find("begin").text), int(line_node.find("end").text),
+                              line_node.find("text").text, words))
+        self.text = root.find("text").text
+        self.lines = lines
+        return self

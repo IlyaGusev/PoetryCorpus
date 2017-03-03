@@ -3,19 +3,54 @@
 # Описание: Классификатор метра.
 
 import json
-from collections import OrderedDict
+from collections import OrderedDict, Counter, defaultdict
 from poetry.apps.corpus.scripts.preprocess import get_first_vowel_position
 from poetry.apps.corpus.scripts.metre.patterns import Patterns
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import CommonMixin
 
 
-class ErrorCorrection(CommonMixin):
+class AccentCorrection(CommonMixin):
     def __init__(self, line_number, word_number, syllable_number, word_text, accent):
         self.line_number = line_number
         self.word_number = word_number
         self.syllable_number = syllable_number
         self.word_text = word_text
         self.accent = accent
+
+
+class CompiledPatterns(object):
+    def __init__(self):
+        self.compilations = defaultdict(lambda: defaultdict(lambda: ""))
+
+    def get_patterns(self, metre_name, metre_pattern, syllables_count):
+        if metre_name not in self.compilations or syllables_count not in self.compilations[metre_name]:
+            self.compilations[metre_name][syllables_count] = Patterns.compile_pattern(metre_pattern, syllables_count)
+        return self.compilations[metre_name][syllables_count]
+
+
+class LineClassificationResult(CommonMixin):
+    def __init__(self):
+        self.error_count = {metre_name: Counter() for metre_name in MetreClassifier.metres.keys()}
+
+    def store_pattern_result(self, metre_name, pattern, error_count):
+        self.error_count[metre_name][pattern] = error_count
+
+    def get_best_patterns(self):
+        patterns = {}
+        for metre_name in MetreClassifier.metres.keys():
+            patterns[metre_name] = min(self.error_count[metre_name], key=self.error_count[metre_name].get, default=3)
+        return patterns
+
+    def get_best_metres(self):
+        metre_errors_counter = Counter(MetreClassifier.metres.keys())
+        for metre_name, pattern in self.get_best_patterns().items():
+            metre_errors_counter[metre_name] = self.error_count[metre_name][pattern]
+        min_errors = metre_errors_counter[min(metre_errors_counter, key=metre_errors_counter.get)]
+        result_metres = []
+        for key, value in metre_errors_counter.items():
+            if value == min_errors:
+                result_metres.append(key)
+        return result_metres
 
 
 class ClassificationResult(CommonMixin):
@@ -25,8 +60,8 @@ class ClassificationResult(CommonMixin):
     def __init__(self, count_lines=0):
         self.metre = None
         self.pattern = None
-        self.line_metres = [ClassificationResult(0) for i in range(count_lines)]
-        self.errors_count = {k: 0 for k in MetreClassifier.metres.keys()}
+        self.lines_result = [LineClassificationResult() for i in range(count_lines)]
+        self.errors_count = Counter(MetreClassifier.metres.keys())
         self.corrections = {k: [] for k in MetreClassifier.metres.keys()}
         self.resolutions = {k: [] for k in MetreClassifier.metres.keys()}
         self.additions = {k: [] for k in MetreClassifier.metres.keys()}
@@ -42,16 +77,16 @@ class ClassificationResult(CommonMixin):
         self.__dict__.update(json.loads(st))
         return self
 
+    @staticmethod
+    def str_corrections(collection):
+        return"\n".join([str((item.word_text, item.syllable_number)) for item in collection])
+
     def __str__(self):
         st = "Метр: " + str(self.metre) + "\n"
-        st += "Снятая омография: \n" + "\n".join(
-            [str((item['word_text'], item['syllable_number'])) for item in self.resolutions[self.metre]]) + "\n"
-        st += "Неправильные ударения: \n" + "\n".join(
-            [str((item['word_text'], item['syllable_number'])) for item in self.corrections[self.metre]]) + "\n"
-        st += "Новые ударения: \n" + "\n".join(
-            [str((item['word_text'], item['syllable_number'])) for item in self.additions[self.metre]]) + "\n"
-        st += "ML: \n" + "\n".join(
-            [str((item['word_text'], item['syllable_number'])) for item in self.ml_resolutions]) + "\n"
+        st += "Снятая омография: \n" + ClassificationResult.str_corrections(self.resolutions[self.metre]) + "\n"
+        st += "Неправильные ударения: \n" + ClassificationResult.str_corrections(self.corrections[self.metre]) + "\n"
+        st += "Новые ударения: \n" + ClassificationResult.str_corrections(self.additions[self.metre]) + "\n"
+        st += "ML: \n" + ClassificationResult.str_corrections(self.ml_resolutions) + "\n"
         return st
 
 
@@ -83,8 +118,7 @@ class MetreClassifier(object):
          ("taktovik2", 0.7)])
 
     border_syllables_count = 18
-
-    compilations = {metre_name: [None for i in range(1, 25)] for metre_name, expression in metres.items()}
+    compilations = CompiledPatterns()
 
     @staticmethod
     def classify_metre(markup):
@@ -97,45 +131,26 @@ class MetreClassifier(object):
         for metre_name, metre_pattern in MetreClassifier.metres.items():
             for l in range(len(markup.lines)):
                 line = markup.lines[l]
-                line_syllables = sum([len(word.syllables) for word in line.words])
+                line_syllables_count = sum([len(word.syllables) for word in line.words])
 
                 # Строчки длиной больше border_syllables_count слогов не обрабатываем.
-                if line_syllables > MetreClassifier.border_syllables_count:
+                if line_syllables_count > MetreClassifier.border_syllables_count:
                     continue
                 # Используем запомненные шаблоны, если их нет - компилируем и запоминаем.
-                patterns = MetreClassifier.compilations[metre_name][line_syllables]
-                if patterns is None:
-                    MetreClassifier.compilations[metre_name][line_syllables] = \
-                        Patterns.compile_pattern(metre_pattern, line_syllables)
-                patterns = MetreClassifier.compilations[metre_name][line_syllables]
+                patterns = MetreClassifier.compilations.get_patterns(metre_name, metre_pattern, line_syllables_count)
                 patterns = [pattern.lower() for pattern in patterns]
 
-                # Выбираем лучший шаблон для данной строчки.
-                minimum_error_count = 100
+                # Сохраняем результаты по всем шаблонам.
                 if len(patterns) == 0:
                     continue
                 for pattern in patterns:
                     error_count, corrections, resolutions, additions = \
                         MetreClassifier.line_pattern_matching(line, l, pattern)
-                    if error_count < minimum_error_count:
-                        minimum_error_count = error_count
-                        result.line_metres[l].errors_count[metre_name] = minimum_error_count
-                        result.line_metres[l].corrections[metre_name] = corrections
-                        result.line_metres[l].resolutions[metre_name] = resolutions
-                        result.line_metres[l].additions[metre_name] = additions
+                    result.lines_result[l].store_pattern_result(metre_name, pattern, error_count)
 
-        # Считаем лучший метр для каждой строки.
-        line_metres = [[] for i in range(len(markup.lines))]
-        for l in range(len(markup.lines)):
-            minimum_error_count = 100
-            for metre_name in MetreClassifier.metres.keys():
-                error_count = result.line_metres[l].errors_count[metre_name]
-                if error_count < minimum_error_count:
-                    minimum_error_count = error_count
-            for metre_name in MetreClassifier.metres.keys():
-                error_count = result.line_metres[l].errors_count[metre_name]
-                if error_count == minimum_error_count:
-                    line_metres[l].append(metre_name)
+        # Считаем лучшие метры для каждой строки.
+        line_metres = [result.lines_result[i].get_best_metres() for i in range(len(markup.lines))]
+
         # Выбираем общий метр по метрам строк с учётом коэффициентов.
         counter = {k: 0 for k in MetreClassifier.metres.keys()}
         for l in range(len(markup.lines)):
@@ -144,11 +159,15 @@ class MetreClassifier(object):
         for key in counter.keys():
             counter[key] *= MetreClassifier.coef[key]
         result.metre = max(counter, key=counter.get)
+
         for l in range(len(markup.lines)):
-            result.corrections[result.metre] += result.line_metres[l].corrections[result.metre]
-            result.resolutions[result.metre] += result.line_metres[l].resolutions[result.metre]
-            result.additions[result.metre] += result.line_metres[l].additions[result.metre]
-            result.errors_count[result.metre] += result.line_metres[l].errors_count[result.metre]
+            pattern = result.lines_result[l].get_best_patterns()[result.metre]
+            error_count, corrections, resolutions, additions =\
+                MetreClassifier.line_pattern_matching(markup.lines[l], l, pattern)
+            result.corrections[result.metre] += corrections
+            result.resolutions[result.metre] += resolutions
+            result.additions[result.metre] += additions
+            result.errors_count[result.metre] += error_count
         return result
 
     @staticmethod
@@ -167,28 +186,27 @@ class MetreClassifier(object):
         number_in_pattern = 0
         for w in range(len(line.words)):
             word = line.words[w]
+            # Игнорируем слова длиной меньше 2 слогов.
             if len(word.syllables) <= 1:
                 number_in_pattern += len(word.syllables)
                 continue
-            accents_count = sum([1 for syllable in word.syllables if syllable.accent != -1])
+            accents_count = word.count_accents()
             for syllable in word.syllables:
-                if accents_count >= 1 and pattern[number_in_pattern] == "u" and syllable.accent != -1:
+                if accents_count == 0 and pattern[number_in_pattern] == "s":
+                    # Ударений нет, ставим такое, какое подходит по метру. Возможно несколько.
+                    additions.append(AccentCorrection(line_number, w, syllable.number, word.text, syllable.vowel()))
+                elif pattern[number_in_pattern] == "u" and syllable.accent != -1:
+                    # Ударение есть и оно падает на этот слог, при этом в шаблоне безударная позиция.
+                    # Найдём такой слог, у которого в шаблоне ударная позиция. Это и есть наше исправление.
                     for other_syllable in word.syllables:
-                        if syllable.number == other_syllable.number:
-                            continue
                         other_number_in_pattern = other_syllable.number - syllable.number + number_in_pattern
-                        if pattern[other_number_in_pattern] == "s":
-                            accent = get_first_vowel_position(other_syllable.text) + other_syllable.begin
-                            correction = ErrorCorrection(line_number, w, other_syllable.number, word.text, accent)
-                            if accents_count == 1 and other_syllable.accent == -1:
-                                corrections.append(correction)
-                            else:
-                                resolutions.append(correction)
-                if accents_count == 0:
-                    if pattern[number_in_pattern] == "s":
-                        accent = get_first_vowel_position(syllable.text) + syllable.begin
-                        addition = ErrorCorrection(line_number, w, syllable.number, word.text, accent)
-                        additions.append(addition)
+                        if syllable.number == other_syllable.number or pattern[other_number_in_pattern] != "s":
+                            continue
+                        ac = AccentCorrection(line_number, w, other_syllable.number, word.text, other_syllable.vowel())
+                        if accents_count == 1 and other_syllable.accent == -1:
+                            corrections.append(ac)
+                        else:
+                            resolutions.append(ac)
                 number_in_pattern += 1
         return len(corrections), corrections, resolutions, additions
 
