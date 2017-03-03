@@ -1,6 +1,7 @@
 # Поэтический корпус русского языка #
 
 [![Build Status](https://travis-ci.org/IlyaGusev/PoetryCorpus.svg?branch=master)](https://travis-ci.org/IlyaGusev/PoetryCorpus)
+[![Code Climate](https://codeclimate.com/github/IlyaGusev/PoetryCorpus/badges/gpa.svg)](https://codeclimate.com/github/IlyaGusev/PoetryCorpus)
 
 ### Статистика корпуса текстов с метаинформацией ###
 * Символов:  13208090
