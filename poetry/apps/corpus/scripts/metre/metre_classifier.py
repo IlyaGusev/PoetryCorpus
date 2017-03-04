@@ -38,7 +38,7 @@ class LineClassificationResult(CommonMixin):
     def get_best_patterns(self):
         patterns = {}
         for metre_name in MetreClassifier.metres.keys():
-            patterns[metre_name] = min(self.error_count[metre_name], key=self.error_count[metre_name].get, default=3)
+            patterns[metre_name] = min(self.error_count[metre_name], key=self.error_count[metre_name].get, default="")
         return patterns
 
     def get_best_metres(self):
@@ -144,6 +144,8 @@ class MetreClassifier(object):
                 if len(patterns) == 0:
                     continue
                 for pattern in patterns:
+                    if pattern == "":
+                        continue
                     error_count, corrections, resolutions, additions = \
                         MetreClassifier.line_pattern_matching(line, l, pattern)
                     result.lines_result[l].store_pattern_result(metre_name, pattern, error_count)
@@ -162,6 +164,8 @@ class MetreClassifier(object):
 
         for l in range(len(markup.lines)):
             pattern = result.lines_result[l].get_best_patterns()[result.metre]
+            if pattern == "":
+                continue
             error_count, corrections, resolutions, additions =\
                 MetreClassifier.line_pattern_matching(markup.lines[l], l, pattern)
             result.corrections[result.metre] += corrections
