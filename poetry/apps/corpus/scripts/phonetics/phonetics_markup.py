@@ -96,6 +96,13 @@ class Word(CommonMixin):
                 accent = syllable.accent
         return accent
 
+    def set_accent(self, accent):
+        for syllable in self.syllables:
+            if syllable.accent != -1:
+                syllable.accent = -1
+            if syllable.begin <= accent < syllable.end:
+                syllable.accent = accent
+
     def get_short(self):
         return self.text.lower() + str(self.accent())
 

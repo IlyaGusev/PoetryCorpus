@@ -13,6 +13,60 @@ from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
 from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import CommonMixin
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
+from poetry.apps.corpus.scripts.preprocess import text_to_wordlist
+
+
+class Filter(object):
+    def filter_word(self, word):
+        raise NotImplementedError()
+
+    def filter_model(self, words_with_freq):
+        return {word: prob for word, prob in words_with_freq.items() if self.filter_word(word)}
+
+    def filter_words(self, words):
+        return [word for word in words if self.filter_word(word)]
+
+
+class MetreFilter(Filter):
+    def __init__(self, metre_pattern, syllables_min):
+        self.position = len(metre_pattern) - 1
+        self.syllables_min = syllables_min
+        self.metre_pattern = metre_pattern
+
+    def filter_word(self, word):
+        syllables_count = len(word.syllables)
+        if syllables_count > self.position + 1:
+            return False
+        for i in range(syllables_count):
+            syllable = word.syllables[i]
+            syllable_number = self.position - syllables_count + i + 1
+            if syllables_count >= 2 and syllable.accent == -1 and self.metre_pattern[syllable_number] == "+":
+                for j in range(syllables_count):
+                    other_syllable = word.syllables[j]
+                    other_syllable_number = other_syllable.number - syllable.number + syllable_number
+                    if i != j and other_syllable.accent != -1 and self.metre_pattern[other_syllable_number] == "-":
+                        return False
+        return True
+
+    def filter_sentence(self, words):
+        for word in words:
+            if not self.filter_word(word):
+                self.reset()
+                return False
+            self.position -= len(word.syllables)
+        self.reset()
+        return True
+
+    def reset(self):
+        self.position = len(self.metre_pattern) - 1
+
+
+class RhymeFilter(Filter):
+    def __init__(self, previous_rhyme):
+        self.previous_rhyme = previous_rhyme
+
+    def filter_word(self, word):
+        return Rhymes.is_rhyme(self.previous_rhyme, word, score_border=4, syllable_number_border=10)
 
 
 class Markov(CommonMixin):
@@ -69,41 +123,12 @@ class Markov(CommonMixin):
         # Заполняем словарь рифм.
         self.rhymes.add_markup(markup)
 
-    def filter_by_metre(self, collection, metre_pattern, n_syllables_min, n_syllables_max, position_in_pattern=-1):
-        """
-        Фильтрация по метру элементов коллекции из коротких версий слов из разметки.
-        :param collection:  набор коротких версий слов.
-        :param metre_pattern: шаблон метра с длиной, равной количеству слогов в строке.
-        :param n_syllables_min: минимальное количество слогов в слове.
-        :param n_syllables_max: максимальное количество слогов в слове.
-        :param position_in_pattern: позиция в шаблоне метра, куда нужно вставить слово, -1 == вставить в конец.
-        :return: коллекция, фильрованная по метру.
-        """
-        filtered_collection = dict()
-        for short, freq in collection.items():
-            word = self.short_words[short]
-            pos = position_in_pattern if position_in_pattern != -1 else len(metre_pattern) - len(word.syllables)
-            if len(word.syllables) > n_syllables_max or len(word.syllables) < n_syllables_min:
-                continue
-
-            good_word = True
-            for i in range(len(word.syllables)):
-                syllable = word.syllables[i]
-                syllable_number = pos + i
-                if len(word.syllables) >= 2 and syllable.accent != -1 and metre_pattern[syllable_number] == "-":
-                    good_word = False
-                    break
-            if good_word:
-                filtered_collection[short] = freq
-        return filtered_collection
-
-    def generate_line(self, transitions, n_syllables, seed_short=None, metre_pattern=None):
+    def generate_line(self, transitions, metre_filter, seed_short=None):
         """
         Генерация одной строки с заданным количеством слогов.
         :param transitions: переходы в цепи.
-        :param n_syllables: количество слогов в строке.
+        :param metre_filter: фильтр.
         :param seed_short: короткая версия первого слова.
-        :param metre_pattern: шаблон метра с длиной, равной количеству слогов в строке.
         :return: получившаяся строка.
         """
         if seed_short is None:
@@ -113,11 +138,12 @@ class Markov(CommonMixin):
         text = seed_word.text.lower()
         syllables_count = len(seed_word.syllables)
 
-        while syllables_count < n_syllables:
+        while syllables_count < len(metre_filter.metre_pattern):
             if transitions.get(prev_step) is not None:
                 transition = transitions[prev_step]
-                transition = self.filter_by_metre(transition, metre_pattern, 1,
-                                                  n_syllables-syllables_count, syllables_count)
+                transition_full = {self.short_words[short]: prob for short, prob in transition.items()}
+                transition = metre_filter.filter_model(transition_full)
+
                 if len(transition) == 0:
                     return ""
 
@@ -125,7 +151,7 @@ class Markov(CommonMixin):
                 candidates = list(transition.keys())
                 weights = list(transition.values())
                 weights = [w / sum(weights) for w in weights]
-                next_word = self.short_words[choice(candidates, 1, p=weights)[0]]
+                next_word = choice(candidates, 1, p=weights)[0]
             else:
                 return ""
 
@@ -134,7 +160,7 @@ class Markov(CommonMixin):
             syllables_count += len(next_word.syllables)
         return text
 
-    def generate_poem(self, metre_schema="-+", rhyme_schema="abab", n_syllables=8):
+    def generate_poem(self, metre_schema="-+", rhyme_schema="abab", n_syllables=8, seeds=None):
         """
         Генерация стихотворения с выбранными параметрами.
         :param metre_schema: схема метра.
@@ -143,23 +169,33 @@ class Markov(CommonMixin):
         :return: стихотворение.
         """
         metre_pattern = ""
-        while len(metre_pattern) < n_syllables:
+        while len(metre_pattern) <= n_syllables:
             metre_pattern += metre_schema
         metre_pattern = metre_pattern[:n_syllables]
 
-        poem = ""
+        metre_filter = MetreFilter(metre_pattern, syllables_min=2)
+        letters_to_rhymes = self.__generate_rhymes(rhyme_schema, metre_filter, self.rhymes.get_words(), seeds)
+        return self.__expand_rhymes(rhyme_schema, metre_filter, letters_to_rhymes, seeds)
+
+    def __generate_rhymes(self, rhyme_schema, metre_filter, candidates, seeds=None):
+        seeds = {} if seeds is None else seeds
+        letters_to_rhymes = defaultdict(list)
         unique_letters = list(set(list(rhyme_schema)))
-        rhyme_candidates = list(self.filter_by_metre(self.rhymes.rhymes, metre_pattern, 2, n_syllables, -1).keys())
-
-        letter_all_rhymes = {}
         for letter in unique_letters:
-            letter_all_rhymes[letter] = []
-            while len(letter_all_rhymes[letter]) < rhyme_schema.count(letter):
-                seed_rhyme = choice(rhyme_candidates, 1)[0]
-                rhyme_with_seed = set(self.filter_by_metre(self.rhymes.rhymes[seed_rhyme], metre_pattern, 2, n_syllables, -1))
-                rhyme_with_seed.add(seed_rhyme)
-                letter_all_rhymes[letter] = list(rhyme_with_seed)
+            count_letter = sum(letter == ch for ch in rhyme_schema)
+            n_attempts = 0
+            while len(letters_to_rhymes[letter]) < count_letter:
+                seed = seeds[letter] if letter in seeds else choice(candidates, 1)[0]
+                if letter in seeds:
+                    n_attempts += 1
+                    if n_attempts == 20:
+                        seeds = {}
+                rhymes = self.rhymes.get_rhymes(seed.get_short())
+                letters_to_rhymes[letter] = metre_filter.filter_words(list(set([seed, ] + rhymes)))
+        return letters_to_rhymes
 
+    def __expand_rhymes(self, rhyme_schema, metre_filter, letters_to_rhymes, seeds=None):
+        poem = ""
         for letter in rhyme_schema:
             generated = ""
             n_attempts = 0
@@ -167,13 +203,27 @@ class Markov(CommonMixin):
                 n_attempts += 1
                 if n_attempts == 20:
                     print("Retry")
-                    return self.generate_poem(metre_schema, rhyme_schema, n_syllables)
-                seed = choice(letter_all_rhymes[letter], 1)[0]
-                generated = self.generate_line(self.transitions, n_syllables,
-                                               seed_short=seed, metre_pattern=metre_pattern)
+                    return self.generate_poem(metre_filter.metre_pattern, rhyme_schema,
+                                              len(metre_filter.metre_pattern), seeds)
+                seed = choice(letters_to_rhymes[letter], 1)[0]
+                generated = self.generate_line(self.transitions, metre_filter, seed_short=seed.get_short())
                 if generated != "":
-                    letter_all_rhymes[letter].remove(seed)
+                    letters_to_rhymes[letter].remove(seed)
+            poem += " ".join(reversed(generated.split(" "))) + "\n"
+        return poem
 
-            line = " ".join(reversed(generated.split(" ")))
-            poem += line + "\n"
+    def generate_poem_by_line(self, accent_dict, accents_classifier, line, rhyme_schema="aabb"):
+        Phonetics.process_text(line, accent_dict)
+        markup = Phonetics.process_text(line, accent_dict)
+        markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
+        rhyme_word = markup.lines[0].words[-1]
+        metre_pattern = result.lines_result[0].get_best_patterns()[result.metre]
+        metre_pattern = metre_pattern.lower().replace("s", "+").replace("u", "-")
+        count_syllables = sum(len(Phonetics.get_word_syllables(word)) for word in text_to_wordlist(line))
+        metre_pattern = metre_pattern[:count_syllables]
+        self.short_words[rhyme_word.get_short()] = rhyme_word
+        self.rhymes.short_words[rhyme_word.get_short()] = rhyme_word
+        self.rhymes.rhymes[rhyme_word.get_short()] = self.rhymes.get_word_rhymes(rhyme_word)
+        generated = self.generate_poem(metre_pattern, rhyme_schema, len(metre_pattern), {rhyme_schema[0]: rhyme_word})
+        poem = line + "\n".join(generated.split("\n")[1:])
         return poem

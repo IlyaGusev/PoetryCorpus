@@ -31,3 +31,7 @@ class TestMarkovChains(unittest.TestCase):
         poem4 = markov.generate_poem(metre_schema="-+", rhyme_schema="ababcc", n_syllables=10)
         self.assertEqual(len(poem4.split("\n")), 7)
         print(poem4)
+        poem5 = markov.generate_poem_by_line(self.accents_dict, self.accents_classifier,
+                                             "Забывши волнения жизни мятежной,\n")
+
+        print(poem5)

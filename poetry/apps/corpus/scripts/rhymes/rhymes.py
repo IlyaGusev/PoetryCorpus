@@ -11,6 +11,7 @@ from poetry.settings import BASE_DIR
 from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
 from poetry.apps.corpus.scripts.preprocess import VOWELS
+from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Word
 
 
 class Rhymes(object):
@@ -18,7 +19,7 @@ class Rhymes(object):
     Поиск, обработка и хранение рифм.
     """
     def __init__(self):
-        self.rhymes = defaultdict(Counter)
+        self.rhymes = defaultdict(set)
         self.short_words = {}
 
     def add_markup(self, markup):
@@ -27,9 +28,9 @@ class Rhymes(object):
         :param markup: разметка.
         """
         rhymes = Rhymes.get_markup_rhymes(markup, self.short_words, border=5)
-        for short1, mapping in rhymes.items():
-            for short2, freq in mapping.items():
-                self.rhymes[short1][short2] += freq
+        for short1, rhymes in rhymes.items():
+            for short2 in rhymes:
+                self.rhymes[short1].add(short2)
 
     def save(self, filename):
         """
@@ -48,16 +49,31 @@ class Rhymes(object):
             markov = pickle.load(f)
             self.__dict__.update(markov.__dict__)
 
-    def get_word_rhymes(self, word, accent_dict, accent_classifier):
+    def get_word_rhymes(self, word):
         """
         Поиск рифмы для данного слова.
         :param word: слово.
-        :param accent_dict: словарь ударений.
-        :param accent_classifier: классификатор ударений.
         :return: список рифм.
         """
-        short = word + str(Phonetics.get_improved_word_accent(word, accent_dict, accent_classifier))
-        return self.rhymes[short].keys()
+        rhymes = set(self.rhymes[word.get_short()])
+        for short_rhyme in self.rhymes.keys():
+            if self.is_rhyme(self.short_words[short_rhyme], word, syllable_number_border=10):
+                rhymes.add(short_rhyme)
+        return list(rhymes)
+
+    def get_words(self):
+        """
+        Поулчить все слова.
+        :return: список слов.
+        """
+        return [self.short_words[word] for word in self.rhymes.keys()]
+
+    def get_rhymes(self, short_word):
+        """
+        Поулчить рифмы данного слова.
+        :return: список рифм данному слову.
+        """
+        return [self.short_words[word] for word in list(self.rhymes[short_word])]
 
     @staticmethod
     def get_rhyme_profile(word):
@@ -120,7 +136,7 @@ class Rhymes(object):
         :param border: граница определния рифмы, чем выше, тем строже совпадение.
         :return result: словарь всех рифм, в коротком предсатвлении.
         """
-        rhymes = defaultdict(Counter)
+        rhymes = defaultdict(set)
         rhyme_candidates = []
         for line in markup.lines:
             if len(line.words) != 0:
@@ -133,7 +149,7 @@ class Rhymes(object):
                     short_words[shorts[0]] = words[0]
                     short_words[shorts[1]] = words[1]
                     for item in [shorts, tuple(reversed(shorts))]:
-                        rhymes[item[0]][item[1]] += 1
+                        rhymes[item[0]].add(item[1])
         return rhymes
 
     @staticmethod
