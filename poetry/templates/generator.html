@@ -1,6 +1,10 @@
 {% extends "base.html" %}
+{% load static from staticfiles %}
 {% load add_class %}
 {% block generator_active %} class="active" {% endblock %}
+{% block custom_head %}
+<script src="{% static 'js/generator.js' %}"></script>
+{% endblock %}
 {% block content %}
 <div class="page-header">
     <h3>Генератор стихов (на основе подкорпуса стихов А.С.Пушкина)</h3>

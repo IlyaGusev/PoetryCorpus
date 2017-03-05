@@ -97,6 +97,7 @@ class GenerationSettings(Model):
     metre_schema = TextField("Схема метра", blank=False, default="+-")
     syllables_count = IntegerField("Количество слогов", blank=False, default=8)
     rhyme_schema = TextField("Схема рифмовки", blank=False, default="aabb")
+    line = TextField("Первая строчка", blank=True, default="")
 
     def __str__(self):
         return 'Настройки генерации: ' + str(self.metre_schema) + " " + \

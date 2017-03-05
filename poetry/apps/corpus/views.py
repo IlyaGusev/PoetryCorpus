@@ -13,7 +13,7 @@ from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
 from poetry.apps.corpus.scripts.preprocess import VOWELS
-from poetry.apps.corpus.scripts.generate.markov import Markov
+from poetry.apps.corpus.scripts.generate.markov import Markov, Generator
 from poetry.apps.corpus.scripts.phonetics.accent_classifier import AccentClassifier
 from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
 from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
@@ -24,6 +24,7 @@ class Global:
     accent_classifier = None
     markov = None
     rhymes = None
+    generator = None
 
     @classmethod
     def get_dict(cls):
@@ -42,6 +43,12 @@ class Global:
         if cls.markov is None:
             cls.markov = Markov(cls.get_dict(), cls.get_classifier())
         return cls.markov
+
+    @classmethod
+    def get_generator(cls):
+        if cls.generator is None:
+            cls.generator = Generator(cls.get_markov().transitions, cls.get_markov().short_words)
+        return cls.generator
 
     @classmethod
     def get_rhymes(cls):
@@ -151,10 +158,17 @@ class GeneratorView(FormView):
         settings, created = GenerationSettings.objects.get_or_create(
             metre_schema=self.request.GET.get('metre_schema', "-+"),
             syllables_count=int(self.request.GET.get('syllables_count', 8)),
-            rhyme_schema=self.request.GET.get('rhyme_schema', "aabb"))
-        context['generated'] = Global.get_markov().generate_poem(settings.metre_schema,
-                                                    settings.rhyme_schema,
-                                                    settings.syllables_count)
+            rhyme_schema=self.request.GET.get('rhyme_schema', "aabb"),
+            line=self.request.GET.get('line', ""))
+        if settings.line != "":
+            context['generated'] = Global.get_generator().generate_poem_by_line(Global.get_dict(),
+                                                                                Global.get_classifier(),
+                                                                                settings.line,
+                                                                                settings.rhyme_schema)
+        else:
+            context['generated'] = Global.get_generator().generate_poem(settings.metre_schema,
+                                                                    settings.rhyme_schema,
+                                                                    settings.syllables_count)
         AutomaticPoem.objects.create(text=context['generated'], date=datetime.datetime.now(), settings=settings)
         return context
 

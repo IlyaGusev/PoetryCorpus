@@ -120,9 +120,9 @@ class Rhymes(object):
                         count_equality += 3
                     else:
                         count_equality += 1
-        if features1[2] == features2[2] and features1[2] != '':
+        if features1[2] == features2[2] and features1[2] != '' and features2[2] != '':
             count_equality += 2
-        elif features1[3] == features2[3] and features1[3] != '':
+        elif features1[3] == features2[3] and features1[3] != '' and features2[3] != '':
             count_equality += 1
         return features1[0] == features2[0] and count_equality >= score_border and \
                features1[0] <= syllable_number_border
