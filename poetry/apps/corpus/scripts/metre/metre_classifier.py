@@ -61,14 +61,14 @@ class ClassificationResult(CommonMixin):
         self.metre = None
         self.pattern = None
         self.lines_result = [LineClassificationResult() for i in range(count_lines)]
-        self.errors_count = Counter(MetreClassifier.metres.keys())
+        self.errors_count = {k: 0 for k in MetreClassifier.metres.keys()}
         self.corrections = {k: [] for k in MetreClassifier.metres.keys()}
         self.resolutions = {k: [] for k in MetreClassifier.metres.keys()}
         self.additions = {k: [] for k in MetreClassifier.metres.keys()}
         self.ml_resolutions = []
 
     def get_metre_errors_count(self):
-        return self.errors_count[self.metre]
+        return self.errors_count[self.metre]-1
 
     def to_json(self):
         self.lines_result = []
