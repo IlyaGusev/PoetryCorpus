@@ -115,7 +115,7 @@ class MarkupView(DetailView):
         context['additional'] = markup.get_automatic_additional()
         rhymes = Rhymes()
         rhymes.add_markup(m)
-        context['rhymes'] = [(key, list(value.keys())) for key, value in rhymes.rhymes.items()]
+        context['rhymes'] = [(key, list(value)) for key, value in rhymes.rhymes.items()]
         return context
 
     def post(self, request, *args, **kwargs):

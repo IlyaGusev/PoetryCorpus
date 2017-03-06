@@ -80,7 +80,7 @@ class ClassificationResult(CommonMixin):
 
     @staticmethod
     def str_corrections(collection):
-        return"\n".join([str((item.word_text, item.syllable_number)) for item in collection])
+        return"\n".join([str((item['word_text'], item['syllable_number'])) for item in collection])
 
     def __str__(self):
         st = "Метр: " + str(self.metre) + "\n"
