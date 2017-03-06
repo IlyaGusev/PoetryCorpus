@@ -71,6 +71,7 @@ class ClassificationResult(CommonMixin):
         return self.errors_count[self.metre]
 
     def to_json(self):
+        self.lines_result = []
         return json.dumps(self.to_dict(), ensure_ascii=False)
 
     def from_json(self, st):
