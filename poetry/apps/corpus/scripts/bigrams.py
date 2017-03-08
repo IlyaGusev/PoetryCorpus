@@ -1,8 +1,8 @@
-import xml.etree.ElementTree as etree
 import codecs
+import xml.etree.ElementTree as etree
 from math import log, sqrt
 
-from poetry.apps.corpus.scripts.preprocess import text_to_wordlist
+from poetry.apps.corpus.scripts.util.preprocess import text_to_wordlist
 
 
 def collectNgrams():

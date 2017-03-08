@@ -8,28 +8,50 @@ from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
 
 
 class Filter(object):
+    """
+    Фильтр языковой модели.
+    """
     def filter_word(self, word):
         raise NotImplementedError()
 
-    def filter_model(self, words_with_freq):
-        model = {word: prob for word, prob in words_with_freq.items() if self.filter_word(word)}
-        probabilities = list(model.values())
-        s = sum(probabilities)
-        l = len(probabilities)
-        for word, p in model.items():
-            model[word] = p/s if s != 0 else 1/l
+    def filter_model(self, model, vocabulary):
+        """
+        Фильтрация языковой модели.
+        :param model: изначальная модель.
+        :param vocabulary: словарь
+        :return: модель после фильтрации и нормирования.
+        """
+        for i in range(len(model)):
+            if not self.filter_word(vocabulary.get_word(i)):
+                model[i] = 0.0
+        s = sum(model)
+        for i in range(len(model)):
+            model[i] = model[i]/s if s != 0.0 else 0.0
         return model
 
     def filter_words(self, words):
+        """
+        Фильтрация набора слов
+        :param words: слова.
+        :return: слова после фильтрации.
+        """
         return [word for word in words if self.filter_word(word)]
 
 
 class MetreFilter(Filter):
+    """
+    Фильтр по шаблону метра.
+    """
     def __init__(self, metre_pattern):
         self.metre_pattern = metre_pattern
         self.position = len(metre_pattern) - 1
 
     def filter_word(self, word):
+        """
+        Фильтрация слова по метру в текущей позиции.
+        :param word: слово (Word).
+        :return: подходит слово или нет.
+        """
         syllables_count = len(word.syllables)
         if syllables_count > self.position + 1:
             return False
@@ -45,13 +67,23 @@ class MetreFilter(Filter):
         return True
 
     def pass_word(self, word):
+        """
+        Сдвинуть позицию в шаблоне метра на слово.
+        :param word: слово (Word).
+        """
         self.position -= len(word.syllables)
 
     def reset(self):
+        """
+        Сброс позиции в шаблоне.
+        """
         self.position = len(self.metre_pattern) - 1
 
 
 class RhymeFilter(Filter):
+    """
+    Фильтр по шаблону рифмы.
+    """
     def __init__(self, rhyme_pattern, letters_to_rhymes=None):
         self.rhyme_pattern = rhyme_pattern
         self.position = len(self.rhyme_pattern) - 1
@@ -62,15 +94,25 @@ class RhymeFilter(Filter):
                     self.letters_to_rhymes[letter].add(word)
 
     def pass_word(self, word):
+        """
+        Сдвинуть позицию в шаблоне рифмы на строчку.
+        :param word: рифмующееся слово (Word).
+        """
         self.letters_to_rhymes[self.rhyme_pattern[self.position]].add(word)
         self.position -= 1
 
     def filter_word(self, word):
+        """
+        Фильтрация слова по рифме в текущей позиции.
+        :param word: слово (Word).
+        :return: подходит слово или нет.
+        """
         if len(word.syllables) <= 1:
             return False
         if len(self.letters_to_rhymes[self.rhyme_pattern[self.position]]) == 0:
             return True
         first_word = list(self.letters_to_rhymes[self.rhyme_pattern[self.position]])[0]
+
         is_rhyme = Rhymes.is_rhyme(first_word, word, score_border=5, syllable_number_border=2) and \
-                   first_word.text != word.text
+            first_word.text != word.text
         return is_rhyme

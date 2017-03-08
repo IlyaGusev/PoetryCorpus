@@ -33,8 +33,8 @@ class Command(BaseCommand):
         poems = Poem.objects.all()
         begin = int(options.get('from'))
         end = int(options.get('to')) if options.get('to') is not None else len(poems)
-
         poems = Poem.objects.all()[begin:end]
+
         filename = os.path.join(BASE_DIR, "datasets", "django", "markup_django.json")
         try:
             os.remove(filename)

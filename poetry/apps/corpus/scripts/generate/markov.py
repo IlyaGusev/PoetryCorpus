@@ -4,24 +4,23 @@
 
 import os
 import pickle
+import sys
 import xml.etree.ElementTree as etree
 from collections import Counter, defaultdict
+import numpy as np
 
+from poetry.apps.corpus.scripts.generate.vocabulary import Vocabulary
+from poetry.apps.corpus.scripts.phonetics.phonetics_markup import CommonMixin, Markup
 from poetry.settings import BASE_DIR
-from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
-from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import CommonMixin
-from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
 
 
-class Markov(CommonMixin):
+class MarkovModelContainer(CommonMixin):
     """
-    Генерация стихов с помощью марковских цепей.
+    Марковские цепи.
     """
-    def __init__(self, accents_dict, accents_classifier):
-        self.transitions = defaultdict(Counter)
-        self.rhymes = Rhymes()
-        self.short_words = {}
+    def __init__(self):
+        self.transitions = list()
+        self.vocabulary = Vocabulary()
 
         # Делаем дамп модели для ускорения загрузки.
         dump_filename = os.path.join(BASE_DIR, "datasets", "markov.pickle")
@@ -30,12 +29,22 @@ class Markov(CommonMixin):
                 markov = pickle.load(f)
                 self.__dict__.update(markov.__dict__)
         else:
-            root = etree.parse(os.path.join(BASE_DIR, "datasets", "corpus", "all.xml")).getroot()
-            for item in root.findall("./item"):
-                if item.find("./author").text == "Александр Пушкин":
-                    markup, result = MetreClassifier.improve_markup(
-                        Phonetics.process_text(item.find("./text").text, accents_dict), accents_classifier)
+            sys.stdout.write("Starting\n")
+            sys.stdout.flush()
+            i = 0
+            filename = os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml")
+            for event, elem in etree.iterparse(filename, events=['end']):
+                if event == 'end' and elem.tag == 'markup':
+                    markup = Markup()
+                    markup.from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))
+                    markup.text = markup.text.replace("\\n", "\n")
                     self.add_markup(markup)
+                    elem.clear()
+                    i += 1
+                    if i % 500 == 0:
+                        sys.stdout.write(str(i)+"\n")
+                        sys.stdout.flush()
+
             with open(dump_filename, "wb") as f:
                 pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
 
@@ -59,11 +68,27 @@ class Markov(CommonMixin):
         words = []
         for line in markup.lines:
             for word in line.words:
-                words.append(word.get_short())
-                self.short_words[word.get_short()] = word
+                is_added = self.vocabulary.add_word(word)
+                if is_added:
+                    self.transitions.append(Counter())
+                words.append(self.vocabulary.get_word_index(word))
 
         # Генерируем переходы.
         self.generate_chain(list(reversed(words)))
 
-        # Заполняем словарь рифм.
-        self.rhymes.add_markup(markup)
+    def get_model(self, word_indices):
+        """
+        Получение языковой модели.
+        :param word_indices: индексы предыдущих слов.
+        :return: языковая модель (распределение вероятностей для следующего слова).
+        """
+        l = len(self.transitions)
+        if len(word_indices) == 0 or len(self.transitions[word_indices[-1]]) == 0:
+            model = np.full(len(self.transitions), 1/l, dtype=np.float)
+        else:
+            transition = self.transitions[word_indices[-1]]
+            s = sum(transition.values())
+            model = np.zeros(len(self.transitions), dtype=np.float)
+            for index, p in transition.items():
+                model[index] = p/s
+        return model

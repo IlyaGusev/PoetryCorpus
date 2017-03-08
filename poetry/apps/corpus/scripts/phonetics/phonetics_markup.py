@@ -2,11 +2,12 @@
 # Автор: Гусев Илья
 # Описание: Модуль для описания разметки по ударениям и слогам.
 
-import xml.etree.ElementTree as etree
-from dicttoxml import dicttoxml
 import json
+import xml.etree.ElementTree as etree
 
-from poetry.apps.corpus.scripts.preprocess import get_first_vowel_position
+from dicttoxml import dicttoxml
+
+from poetry.apps.corpus.scripts.util.preprocess import get_first_vowel_position
 
 
 def to_dict(obj):

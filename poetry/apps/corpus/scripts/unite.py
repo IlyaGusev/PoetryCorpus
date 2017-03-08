@@ -1,12 +1,12 @@
 import itertools
+import os
 import re
 import xml.etree.ElementTree as etree
-import os
 
 from dicttoxml import dicttoxml
 
+from poetry.apps.corpus.scripts.util.preprocess import to_cyrrilic, normilize_line
 from poetry.settings import BASE_DIR
-from poetry.apps.corpus.scripts.preprocess import to_cyrrilic, normilize_line
 
 
 def clean_text(text):

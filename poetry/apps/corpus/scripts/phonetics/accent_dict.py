@@ -2,10 +2,10 @@
 # Автор: Гусев Илья
 # Описание: Класс для удобной работы со словарём ударений.
 
-import os
 import datrie
+import os
 
-from poetry.apps.corpus.scripts.preprocess import CYRRILIC_LOWER_VOWELS, CYRRILIC_LOWER_CONSONANTS
+from poetry.apps.corpus.scripts.util.preprocess import CYRRILIC_LOWER_VOWELS, CYRRILIC_LOWER_CONSONANTS
 
 
 class AccentDict:

@@ -5,13 +5,12 @@
 import os
 import pickle
 import xml.etree.ElementTree as etree
-from collections import Counter, defaultdict
+from collections import defaultdict
 
-from poetry.settings import BASE_DIR
-from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
-from poetry.apps.corpus.scripts.preprocess import VOWELS
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Word
+from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry.apps.corpus.scripts.util.preprocess import VOWELS
+from poetry.settings import BASE_DIR
 
 
 class Rhymes(object):

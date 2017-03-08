@@ -1,23 +1,24 @@
-import os
 import datetime
+import os
+
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.http import JsonResponse
 from django.views.generic import DetailView, ListView, FormView
 
 import poetry
-from poetry.settings import BASE_DIR
 from poetry.apps.corpus.forms import GeneratorForm, AccentsForm, RhymesForm, AnalysisForm
 from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem
-from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
-from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
-from poetry.apps.corpus.scripts.preprocess import VOWELS
-from poetry.apps.corpus.scripts.generate.markov import Markov
 from poetry.apps.corpus.scripts.generate.generator import Generator
+from poetry.apps.corpus.scripts.generate.markov import MarkovModelContainer
+from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
 from poetry.apps.corpus.scripts.phonetics.accent_classifier import AccentClassifier
 from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
+from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
 from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
+from poetry.apps.corpus.scripts.util.preprocess import VOWELS
+from poetry.settings import BASE_DIR
 
 
 class Global:
@@ -42,7 +43,7 @@ class Global:
     @classmethod
     def get_markov(cls):
         if cls.markov is None:
-            cls.markov = Markov(cls.get_dict(), cls.get_classifier())
+            cls.markov = MarkovModelContainer()
         return cls.markov
 
     @classmethod
