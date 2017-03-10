@@ -1,15 +1,16 @@
 import os
 import xml.etree.ElementTree as etree
+from collections import Counter
+
 import numpy as np
 from keras.layers import Dense, Activation
 from keras.layers import LSTM
 from keras.models import Sequential
 from keras.optimizers import RMSprop
-from collections import Counter
 
-from poetry.apps.corpus.scripts.generate.vocabulary import Vocabulary
-from poetry.settings import BASE_DIR
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup as Markup
+from poetry.apps.corpus.scripts.util.vocabulary import Vocabulary
+from poetry.settings import BASE_DIR
 
 UNKNOWN_WORD = "#########"
 
@@ -36,7 +37,6 @@ class LSTMModelContainer:
             if event == 'end' and elem.tag == 'markup':
                 markup = Markup()
                 markup.from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))
-                markup.text = markup.text.replace("\\n", "\n")
                 for line in markup.lines:
                     for word in line.words:
                         self.vocabulary.add_word(word)

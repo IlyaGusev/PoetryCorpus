@@ -63,13 +63,13 @@ class TestPhonetics(unittest.TestCase):
             'оттечь': [3],
             'советского': [3],
             'союза': [2],
-            'пора': [1, 3],
+            'пора': [3, 1],
             'изжила': [5],
             'меда': [1]
         }
 
         for word, pos in checks.items():
-            self.assertEqual(Phonetics.get_word_accent(word, self.accent_dict), pos)
+            self.assertEqual(sorted(Phonetics.get_word_accent(word, self.accent_dict)), sorted(pos))
 
     def test_process_text(self):
         text = "Соломка изжила себя.\n Пора виться майкой в."

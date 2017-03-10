@@ -12,7 +12,7 @@ from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem
 from poetry.apps.corpus.scripts.generate.generator import Generator
 from poetry.apps.corpus.scripts.generate.markov import MarkovModelContainer
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
-from poetry.apps.corpus.scripts.phonetics.accent_classifier import AccentClassifier
+from poetry.apps.corpus.scripts.phonetics.ml_accent_classifier import MLAccentClassifier
 from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
 from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
 from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
@@ -37,7 +37,7 @@ class Global:
     @classmethod
     def get_classifier(cls):
         if cls.accent_classifier is None:
-            cls.accent_classifier = AccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), cls.get_dict())
+            cls.accent_classifier = MLAccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), cls.get_dict())
         return cls.accent_classifier
 
     @classmethod

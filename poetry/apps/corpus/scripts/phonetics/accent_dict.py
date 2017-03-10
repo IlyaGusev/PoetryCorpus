@@ -37,36 +37,45 @@ class AccentDict:
                         for i in range(len(word)):
                             if word[i] == "'" or word[i] == "`":
                                 pos -= 1
-                                accents.append(pos)
+                                if word[i] == "`":
+                                    accents.append((pos, 1))
+                                else:
+                                    accents.append((pos, 0))
                                 continue
                             if word[i] == "ё":
-                                accents.append(pos)
+                                accents.append((pos, 0))
                             clean_word += word[i]
                             pos += 1
-                        self.update(clean_word, accents)
+                        self.__update(clean_word, accents)
             self.data.save(dump_file)
 
     def save(self, filename):
         dump_file = os.path.splitext(filename)[0] + '.trie'
         self.data.save(dump_file)
 
-    def get_accents(self, word):
+    def get_accents(self, word, accent_type=None):
         """
         Обёртка над data.get().
         :param word: слово, которое мы хотим посмотреть в словаре.
-        :return forms: массив форм с разными ударениями.
+        :param accent_type: тип ударения.
+        :return forms: массив всех ударений.
         """
         if word in self.data:
-            return list(self.data[word])
+            if accent_type is None:
+                return [i[0] for i in self.data[word]]
+            elif accent_type == "primary":
+                return [i[0] for i in self.data[word] if i[1] == 0]
+            else:
+                return [i[0] for i in self.data[word] if i[1] == 1]
         return []
 
-    def update(self, word, accents):
+    def __update(self, word, accent_pairs):
         """
         Обновление словаря.
         :param word: слово.
-        :param accents: набор ударений.
+        :param accent_pairs: набор ударений.
         """
         if word not in self.data:
-            self.data[word] = set(accents)
+            self.data[word] = set([accent_pair for accent_pair in accent_pairs])
         else:
-            self.data[word].update(accents)
+            self.data[word].update(accent_pairs)

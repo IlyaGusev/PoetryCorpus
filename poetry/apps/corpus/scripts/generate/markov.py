@@ -6,15 +6,15 @@ import os
 import pickle
 import sys
 import xml.etree.ElementTree as etree
-from collections import Counter, defaultdict
 import numpy as np
+from collections import Counter
 
-from poetry.apps.corpus.scripts.generate.vocabulary import Vocabulary
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import CommonMixin, Markup
+from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
+from poetry.apps.corpus.scripts.util.vocabulary import Vocabulary
 from poetry.settings import BASE_DIR
 
 
-class MarkovModelContainer(CommonMixin):
+class MarkovModelContainer(object):
     """
     Марковские цепи.
     """
@@ -37,7 +37,6 @@ class MarkovModelContainer(CommonMixin):
                 if event == 'end' and elem.tag == 'markup':
                     markup = Markup()
                     markup.from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))
-                    markup.text = markup.text.replace("\\n", "\n")
                     self.add_markup(markup)
                     elem.clear()
                     i += 1

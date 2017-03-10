@@ -4,12 +4,12 @@
 
 import os
 import pickle
+import sys
 import xml.etree.ElementTree as etree
-from collections import defaultdict
 
-from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
-from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
 from poetry.apps.corpus.scripts.util.preprocess import VOWELS
+from poetry.apps.corpus.scripts.util.vocabulary import Vocabulary
 from poetry.settings import BASE_DIR
 
 
@@ -18,18 +18,28 @@ class Rhymes(object):
     Поиск, обработка и хранение рифм.
     """
     def __init__(self):
-        self.rhymes = defaultdict(set)
-        self.short_words = {}
+        self.rhymes = list()
+        self.vocabulary = Vocabulary()
 
-    def add_markup(self, markup):
+    def add_markup(self, markup, border=5):
         """
-        Добавление рифм из разметки.
+        Добавление рифмующихся слов из разметки.
         :param markup: разметка.
+        :param border: граница по качеству рифмы.
         """
-        rhymes = Rhymes.get_markup_rhymes(markup, self.short_words, border=5)
-        for short1, rhymes in rhymes.items():
-            for short2 in rhymes:
-                self.rhymes[short1].add(short2)
+        for line in markup.lines:
+            for word in line.words:
+                is_added = self.vocabulary.add_word(word)
+                if not is_added:
+                    continue
+                self.rhymes.append(set())
+                index = len(self.vocabulary.words) - 1
+                for i, words in enumerate(self.rhymes):
+                    for j in words:
+                        if not Rhymes.is_rhyme(word, self.vocabulary.get_word(j), score_border=border):
+                            continue
+                        self.rhymes[i].append(index)
+                        self.rhymes[index].append(i)
 
     def save(self, filename):
         """
@@ -45,8 +55,8 @@ class Rhymes(object):
         :param filename: путь к модели.
         """
         with open(filename, "rb") as f:
-            markov = pickle.load(f)
-            self.__dict__.update(markov.__dict__)
+            rhymes = pickle.load(f)
+            self.__dict__.update(rhymes.__dict__)
 
     def get_word_rhymes(self, word):
         """
@@ -54,25 +64,12 @@ class Rhymes(object):
         :param word: слово.
         :return: список рифм.
         """
-        rhymes = set(self.rhymes[word.get_short()])
-        for short_rhyme in self.rhymes.keys():
-            if self.is_rhyme(self.short_words[short_rhyme], word, syllable_number_border=10):
-                rhymes.add(short_rhyme)
-        return list(rhymes)
-
-    def get_words(self):
-        """
-        Поулчить все слова.
-        :return: список слов.
-        """
-        return [self.short_words[word] for word in self.rhymes.keys()]
-
-    def get_rhymes(self, short_word):
-        """
-        Поулчить рифмы данного слова.
-        :return: список рифм данному слову.
-        """
-        return [self.short_words[word] for word in list(self.rhymes[short_word])]
+        rhymes = []
+        for i, prev_word_index in enumerate(self.rhymes):
+            if not Rhymes.is_rhyme(word, self.vocabulary.get_word(prev_word_index), score_border=5):
+                continue
+            rhymes.append(self.vocabulary.get_word(prev_word_index))
+        return rhymes
 
     @staticmethod
     def get_rhyme_profile(word):
@@ -100,7 +97,7 @@ class Rhymes(object):
         return syllable_number, accented_syllable, next_syllable, next_char
 
     @staticmethod
-    def is_rhyme(word1, word2, score_border=4, syllable_number_border=2):
+    def is_rhyme(word1, word2, score_border=4, syllable_number_border=4):
         """
         Проверка рифмованности 2 слов.
         :param word1: первое слово для проверки рифмы, уже акцентуированное (Word).
@@ -127,47 +124,26 @@ class Rhymes(object):
                features1[0] <= syllable_number_border
 
     @staticmethod
-    def get_markup_rhymes(markup, short_words, border=4):
-        """
-        Получение всех рифм в разметке.
-        :param markup: разметка.
-        :param short_words: сопоставление коротких версии слов в разметке с нормальными версиями.
-        :param border: граница определния рифмы, чем выше, тем строже совпадение.
-        :return result: словарь всех рифм, в коротком предсатвлении.
-        """
-        rhymes = defaultdict(set)
-        rhyme_candidates = []
-        for line in markup.lines:
-            if len(line.words) != 0:
-                rhyme_candidates.append(line.words[-1])
-        for i in range(len(rhyme_candidates)):
-            for j in range(i + 1, len(rhyme_candidates)):
-                words = (rhyme_candidates[i], rhyme_candidates[j])
-                if Rhymes.is_rhyme(words[0], words[1], border):
-                    shorts = (words[0].get_short(), words[1].get_short())
-                    short_words[shorts[0]] = words[0]
-                    short_words[shorts[1]] = words[1]
-                    for item in [shorts, tuple(reversed(shorts))]:
-                        rhymes[item[0]].add(item[1])
-        return rhymes
-
-    @staticmethod
-    def get_all_rhymes(accents_dict, accents_classifier):
+    def get_all_rhymes():
         """
         Получние рифм всего корпуса.
-        :param accents_dict: словарь ударений.
-        :param accents_classifier: классификатор ударений.
         :return: объект Rhymes.
         """
-        root = etree.parse(os.path.join(BASE_DIR, "datasets", "corpus", "all.xml")).getroot()
         dump_filename = os.path.join(BASE_DIR, "datasets", "rhymes.pickle")
         rhymes = Rhymes()
         if os.path.isfile(dump_filename):
             rhymes.load(dump_filename)
         else:
-            for item in root.findall("./item"):
-                markup = Phonetics.process_text(item.find("./text").text, accents_dict)
-                markup = MetreClassifier.improve_markup(markup, accents_classifier)
-                rhymes.add_markup(markup)
+            i = 0
+            markups_filename = os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml")
+            for event, elem in etree.iterparse(markups_filename, events=['end']):
+                if event == 'end' and elem.tag == 'markup':
+                    markup = Markup()
+                    markup.from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))
+                    rhymes.add_markup(markup)
+                    i += 1
+                    if i % 500 == 0:
+                        sys.stdout.write(str(i) + "\n")
+                        sys.stdout.flush()
             rhymes.save(dump_filename)
         return rhymes

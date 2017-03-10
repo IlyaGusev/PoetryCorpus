@@ -8,9 +8,16 @@ import os
 from poetry.settings import BASE_DIR
 from poetry.apps.corpus.scripts.generate.markov import MarkovModelContainer
 from poetry.apps.corpus.scripts.generate.generator import Generator
+from poetry.apps.corpus.scripts.phonetics.ml_accent_classifier import MLAccentClassifier
+from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
 
 
 class TestMarkovChains(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
+        cls.accents_classifier = MLAccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), cls.accents_dict)
+
     def test_generate(self):
         markov = MarkovModelContainer()
         generator = Generator(markov, markov.vocabulary)
@@ -26,14 +33,11 @@ class TestMarkovChains(unittest.TestCase):
         poem4 = generator.generate_poem(metre_schema="-+", rhyme_pattern="ababcc", n_syllables=10)
         self.assertEqual(len(poem4.split("\n")), 7)
         print(poem4)
-        # poem5 = generator.generate_poem_by_line(self.accents_dict, self.accents_classifier,
-        #                                         "Забывши волнения жизни мятежной,")
-        # print(poem5)
-        # try:
-        #     poem6 = generator.generate_poem_by_line(self.accents_dict, self.accents_classifier,
-        #                                             "Просто первая строка")
-        #     print(poem6)
-        # except RuntimeError as e:
-        #     print(e)
+        poem5 = generator.generate_poem_by_line(self.accents_dict, self.accents_classifier,
+                                                "Забывши волнения жизни мятежной,")
+        print(poem5)
+        poem6 = generator.generate_poem_by_line(self.accents_dict, self.accents_classifier,
+                                                "Просто первая строка")
+        print(poem6)
 
 
