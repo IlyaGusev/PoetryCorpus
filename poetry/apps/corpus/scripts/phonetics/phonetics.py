@@ -69,7 +69,6 @@ class Phonetics:
         else:
             # Проверяем словарь на наличие форм с ударениями.
             accents = accents_dict.get_accents(word)
-            print(accents)
             if 'е' in word:
                 # Находим все возможные варинаты преобразований 'е' в 'ё'.
                 positions = [i for i in range(len(word)) if word[i] == 'е']

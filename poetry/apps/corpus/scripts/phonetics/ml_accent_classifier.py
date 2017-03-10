@@ -16,7 +16,6 @@ from poetry.apps.corpus.scripts.util.preprocess import get_first_vowel_position
 
 
 class MLAccentClassifier:
-    # TODO: Рефакторинг.
     def __init__(self, model_dir, accents_dict):
         if not os.path.isfile(os.path.join(model_dir, "clf_2.pickle")):
             self.build_accent_classifiers(model_dir, accents_dict)
@@ -33,7 +32,7 @@ class MLAccentClassifier:
     def build_accent_classifiers(model_dir, accents_dict):
         if not os.path.exists(model_dir):
             os.mkdir(model_dir)
-        train_syllables, answers = MLAccentClassifier.build_data(accents_dict)
+        train_syllables, answers = MLAccentClassifier.filter_data(accents_dict)
         for l in range(2, 13):
             train_data = []
             for syllables in train_syllables[l]:
@@ -51,7 +50,7 @@ class MLAccentClassifier:
             gc.collect()
 
     @staticmethod
-    def build_data(accents_dict):
+    def filter_data(accents_dict):
         train_syllables = {k: [] for k in range(2, 13)}
         answers = {k: [] for k in range(2, 13)}
         for key, accents in accents_dict.data.items():
