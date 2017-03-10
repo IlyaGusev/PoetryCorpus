@@ -55,8 +55,6 @@ class Generator(object):
         :return: получившаяся строка.
         """
         metre_filter.reset()
-        if self.model_container is MarkovModelContainer:
-            prev_word_indices[:] = []
         result = []
         word_index = self.generate_word(prev_word_indices, [metre_filter, rhyme_filter])
         prev_word_indices.append(word_index)
