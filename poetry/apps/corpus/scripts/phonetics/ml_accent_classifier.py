@@ -60,10 +60,10 @@ class MLAccentClassifier:
             for syllable in syllables:
                 if "ё" in key:
                     continue
-                for accent_pair in accents:
-                    if accent_pair[1] == 1:
-                        continue
-                    accent = accent_pair[0]
+                primary_accents = [i[0] for i in accents if i[1] == 0]
+                if len(primary_accents) != 1:
+                    continue
+                for accent in primary_accents:
                     if syllable.begin <= accent < syllable.end:
                         syllable.accent = accent
                         answer = syllable.number
