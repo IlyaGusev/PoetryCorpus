@@ -34,3 +34,6 @@ python3 manage.py generate_markup_django --from 16000
 python3 manage.py loaddata datasets/django/markup_django.json
 
 python3 manage.py rebuild_index --noinput
+python3 manage.py generate_markup_xml --mode 1
+python3 manage.py generate_markov
+python3 manage.py generate_rhymes

@@ -21,7 +21,7 @@ class Rhymes(object):
         self.rhymes = list()
         self.vocabulary = Vocabulary()
 
-    def add_markup(self, markup, border=5):
+    def add_markup(self, markup, border=6):
         """
         Добавление рифмующихся слов из разметки.
         :param markup: разметка.
