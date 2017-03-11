@@ -69,7 +69,7 @@ class ClassificationResult(CommonMixin):
         self.ml_resolutions = []
 
     def get_metre_errors_count(self):
-        return self.errors_count[self.metre]-1
+        return self.errors_count[self.metre]
 
     def to_json(self):
         self.lines_result = []
