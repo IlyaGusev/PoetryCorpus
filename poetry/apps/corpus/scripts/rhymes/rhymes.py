@@ -65,10 +65,10 @@ class Rhymes(object):
         :return: список рифм.
         """
         rhymes = []
-        for i, prev_word_index in enumerate(self.rhymes):
-            if not Rhymes.is_rhyme(word, self.vocabulary.get_word(prev_word_index), score_border=5):
+        for i in range(len(self.vocabulary.words)):
+            if not Rhymes.is_rhyme(word, self.vocabulary.get_word(i), score_border=5):
                 continue
-            rhymes.append(self.vocabulary.get_word(prev_word_index))
+            rhymes.append(self.vocabulary.get_word(i))
         return rhymes
 
     @staticmethod

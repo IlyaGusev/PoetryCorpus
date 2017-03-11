@@ -15,7 +15,7 @@ from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
 from poetry.apps.corpus.scripts.phonetics.ml_accent_classifier import MLAccentClassifier
 from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
 from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
+from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup, Word, Line
 from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
 from poetry.apps.corpus.scripts.util.preprocess import VOWELS
 from poetry.settings import BASE_DIR
@@ -49,13 +49,13 @@ class Global:
     @classmethod
     def get_generator(cls):
         if cls.generator is None:
-            cls.generator = Generator(cls.get_markov().transitions, cls.get_markov().short_words)
+            cls.generator = Generator(cls.get_markov(), cls.get_markov().vocabulary)
         return cls.generator
 
     @classmethod
     def get_rhymes(cls):
         if cls.rhymes is None:
-            cls.rhymes = Rhymes.get_all_rhymes(cls.get_dict(), cls.get_classifier())
+            cls.rhymes = Rhymes.get_all_rhymes()
         return cls.rhymes
 
 
@@ -187,7 +187,15 @@ class AccentsView(FormView):
         context = super(AccentsView, self).get_context_data(**kwargs)
         word = self.request.GET.get('word', "")
         if word != "":
-            context['accent'] = Phonetics.get_improved_word_accent(word, Global.get_dict(), Global.get_classifier()) + 1
+            accent = Phonetics.get_improved_word_accent(word, Global.get_dict(), Global.get_classifier())
+            syllables = Phonetics.get_word_syllables(word)
+            for syllable in syllables:
+                if syllable.begin <= accent < syllable.end:
+                    syllable.accent = accent
+            markup_word = Word(0, len(word)-1, word, syllables)
+            markup_line = Line(0, len(word)-1, word, [markup_word])
+            markup = Markup(word, [markup_line])
+            context['word_markup'] = process_markup(markup)
         return context
 
 
@@ -199,9 +207,14 @@ class RhymesView(FormView):
     def get_context_data(self, **kwargs):
         context = super(RhymesView, self).get_context_data(**kwargs)
         word = self.request.GET.get('word', "")
-        if word == "":
-            return context
-        context['rhymes'] = Global.get_rhymes().get_word_rhymes(word, Global.get_dict(), Global.get_classifier())
+        if word != "":
+            accent = Phonetics.get_improved_word_accent(word, Global.get_dict(), Global.get_classifier())
+            syllables = Phonetics.get_word_syllables(word)
+            for syllable in syllables:
+                if syllable.begin <= accent < syllable.end:
+                    syllable.accent = accent
+            markup_word = Word(0, len(word) - 1, word, syllables)
+            context['rhymes'] = [w.text for w in Global.get_rhymes().get_word_rhymes(markup_word)]
         return context
 
 

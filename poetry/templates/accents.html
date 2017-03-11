@@ -11,7 +11,9 @@
              <br>
             <button class="btn btn-primary" type="submit" id="gen_button">Определить ударение</button>
         </form>
-        <div class="text-center">{{ accent }} буква </div>
+        <div style="font-size: 20px; text-align: center;padding-top:20px;">
+            {% include "accented.html" with text=word_markup %}
+        </div>
     </div>
 </div>
 {% endblock %}
