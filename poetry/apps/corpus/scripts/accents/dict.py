@@ -33,6 +33,7 @@ class AccentDict:
             self.data = datrie.Trie.load(dst_filename)
         else:
             self.create(src_filename, dst_filename)
+        print("Accent dict loaded")
 
     def create(self, src_filename: str, dst_filename: str) -> None:
         """

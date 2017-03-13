@@ -76,6 +76,7 @@ class MLAccentClassifier:
         clf = DecisionTreeClassifier()
         clf.fit(train_data, answers)
         joblib.dump(clf, os.path.join(model_dir, MLAccentClassifier.clf_filename.format(syllables_count)))
+        print("Built accent classifier for {syllables_count} syllables".format(syllables_count=syllables_count))
 
     @staticmethod
     def __prepare_data(accents_dict: AccentDict, syllables_count: int) -> Tuple[List[List[int]], List[int]]:
