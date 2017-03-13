@@ -9,13 +9,13 @@ from django.views.generic import DetailView, ListView, FormView
 import poetry
 from poetry.apps.corpus.forms import GeneratorForm, AccentsForm, RhymesForm, AnalysisForm
 from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem
+from poetry.apps.corpus.scripts.accents.classifier import MLAccentClassifier
+from poetry.apps.corpus.scripts.accents.dict import AccentDict
 from poetry.apps.corpus.scripts.generate.generator import Generator
 from poetry.apps.corpus.scripts.generate.markov import MarkovModelContainer
+from poetry.apps.corpus.scripts.main.markup import Markup, Word, Line
+from poetry.apps.corpus.scripts.main.phonetics import Phonetics
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
-from poetry.apps.corpus.scripts.phonetics.ml_accent_classifier import MLAccentClassifier
-from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
-from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup, Word, Line
 from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
 from poetry.apps.corpus.scripts.util.preprocess import VOWELS
 from poetry.settings import BASE_DIR

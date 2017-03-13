@@ -1,6 +1,6 @@
-from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, DateTimeField
 from django.core.urlresolvers import reverse
-from poetry.apps.corpus.scripts.phonetics import phonetics_markup
+from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, DateTimeField
+
 from poetry.apps.corpus.scripts.metre.metre_classifier import ClassificationResult
 
 
@@ -76,7 +76,7 @@ class Markup(Model):
         return reverse("corpus:markup", kwargs={"pk": self.pk})
 
     def get_markup(self):
-        markup = phonetics_markup.Markup()
+        markup = markup.Markup()
         markup.from_json(self.text)
         return markup
 

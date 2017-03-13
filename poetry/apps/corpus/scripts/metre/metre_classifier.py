@@ -5,8 +5,8 @@
 import json
 from collections import OrderedDict, Counter, defaultdict
 
+from poetry.apps.corpus.scripts.main.markup import CommonMixin
 from poetry.apps.corpus.scripts.metre.patterns import Patterns
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import CommonMixin
 from poetry.apps.corpus.scripts.util.preprocess import get_first_vowel_position
 
 

@@ -6,8 +6,9 @@ import os
 import pickle
 import sys
 import xml.etree.ElementTree as etree
+from typing import List, Tuple
 
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
+from poetry.apps.corpus.scripts.main.markup import Markup, Word
 from poetry.apps.corpus.scripts.util.preprocess import VOWELS
 from poetry.apps.corpus.scripts.util.vocabulary import Vocabulary
 from poetry.settings import BASE_DIR
@@ -21,9 +22,10 @@ class Rhymes(object):
         self.rhymes = list()
         self.vocabulary = Vocabulary()
 
-    def add_markup(self, markup, border=6):
+    def add_markup(self, markup: Markup, border: int=6) -> None:
         """
         Добавление рифмующихся слов из разметки.
+
         :param markup: разметка.
         :param border: граница по качеству рифмы.
         """
@@ -41,26 +43,29 @@ class Rhymes(object):
                         self.rhymes[i].append(index)
                         self.rhymes[index].append(i)
 
-    def save(self, filename):
+    def save(self, filename: str) -> None:
         """
         Сохранение состояния данных.
+
         :param filename: путь к модели.
         """
         with open(filename, "wb") as f:
             pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
 
-    def load(self, filename):
+    def load(self, filename: str) -> None:
         """
         Загрузка состояния данных.
+
         :param filename: путь к модели.
         """
         with open(filename, "rb") as f:
             rhymes = pickle.load(f)
             self.__dict__.update(rhymes.__dict__)
 
-    def get_word_rhymes(self, word):
+    def get_word_rhymes(self, word: Word) -> List[Word]:
         """
         Поиск рифмы для данного слова.
+
         :param word: слово.
         :return: список рифм.
         """
@@ -72,9 +77,10 @@ class Rhymes(object):
         return rhymes
 
     @staticmethod
-    def get_rhyme_profile(word):
+    def get_rhyme_profile(word: Word) -> Tuple[int, str, str, str]:
         """
         Получение профиля рифмовки (набора признаков для сопоставления).
+
         :param word: уже акцентуированное слово (Word).
         :return profile: профиль рифмовки.
         """
@@ -97,9 +103,10 @@ class Rhymes(object):
         return syllable_number, accented_syllable, next_syllable, next_char
 
     @staticmethod
-    def is_rhyme(word1, word2, score_border=4, syllable_number_border=4):
+    def is_rhyme(word1: Word, word2: Word, score_border: int=4, syllable_number_border: int=4) -> bool:
         """
         Проверка рифмованности 2 слов.
+
         :param word1: первое слово для проверки рифмы, уже акцентуированное (Word).
         :param word2: второе слово для проверки рифмы, уже акцентуированное (Word).
         :param score_border: граница определния рифмы, чем выше, тем строже совпадение.
@@ -127,6 +134,7 @@ class Rhymes(object):
     def get_all_rhymes():
         """
         Получние рифм всего корпуса.
+
         :return: объект Rhymes.
         """
         dump_filename = os.path.join(BASE_DIR, "datasets", "rhymes.pickle")

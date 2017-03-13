@@ -3,8 +3,9 @@
 # Описание: Тесты для модуля фонетики.
 
 import unittest
+
+from poetry.apps.corpus.scripts.main.markup import Syllable, Word
 from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Syllable, Word
 
 
 class TestRhymes(unittest.TestCase):

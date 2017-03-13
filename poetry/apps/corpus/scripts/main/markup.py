@@ -3,6 +3,7 @@
 # Описание: Модуль для описания разметки по ударениям и слогам.
 
 import json
+from typing import List
 import xml.etree.ElementTree as etree
 
 from dicttoxml import dicttoxml
@@ -11,79 +12,113 @@ from poetry.apps.corpus.scripts.util.preprocess import get_first_vowel_position
 from poetry.apps.corpus.scripts.util.mixins import CommonMixin
 
 
-class Syllable(CommonMixin):
+class Annotation(CommonMixin):
     """
-    Класс данных для слогов.
+    Класс аннотации.
     """
-    def __init__(self, begin, end, number, text, accent=-1):
+    def __init__(self, begin: int, end: int, text: str):
         self.begin = begin
         self.end = end
-        self.number = number
         self.text = text
+
+
+class Syllable(Annotation):
+    """
+    Класс данных для слогов (разметка слога).
+    """
+    def __init__(self, begin: int, end: int, number: int, text: str, accent: int=-1):
+        super(Syllable, self).__init__(begin, end, text)
+        self.number = number
         self.accent = accent
 
-    def vowel(self):
+    def vowel(self) -> int:
+        """
+        Получение позиции гласной буквы этого слога в слове.
+
+        :return: позиция гласной буквы этого слога в слове.
+        """
         return get_first_vowel_position(self.text) + self.begin
 
-    def from_dict(self, d):
+    def from_dict(self, d: dict):
         self.__dict__.update(d)
         return self
 
 
-class Word(CommonMixin):
+class Word(Annotation):
     """
-    Класс данных для слов.
+    Класс данных для слов (разметка слова).
     """
-    def __init__(self, begin, end, text, syllables):
-        self.begin = begin
-        self.end = end
-        self.text = text
+    def __init__(self, begin: int, end: int, text: str, syllables: List[Syllable]) -> None:
+        super(Word, self).__init__(begin, end, text)
         self.syllables = syllables
 
-    def count_accents(self):
+    def count_accents(self) -> int:
+        """
+        Посчитать количество ударений.
+
+        :return: количество ударений в слове.
+        """
         return sum(syllable.accent != -1 for syllable in self.syllables)
 
-    def accent(self):
+    def accent(self) -> int:
+        """
+        Получить последнее ударение в слове.
+
+        :return: ударение, если нет, то -1.
+        """
         accent = -1
         for syllable in self.syllables:
             if syllable.accent != -1:
                 accent = syllable.accent
         return accent
 
-    def set_accent(self, accent):
+    def set_accent(self, accent: int) -> None:
+        """
+        Задать ударение, все остальные ударения убираются.
+
+        :param accent: позиция ударения в слове.
+        """
         for syllable in self.syllables:
             if syllable.accent != -1:
                 syllable.accent = -1
             if syllable.begin <= accent < syllable.end:
                 syllable.accent = accent
 
-    def get_short(self):
+    def get_short(self) -> str:
+        """
+        Получить слово в форме "текст"+"последнее ударение"
+
+        :return: слово в нужной форме.
+        """
         return self.text.lower() + str(self.accent())
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """
+        Взять хеш от разметки слова.
+
+        :return: хеш.
+        """
         return hash(self.get_short())
 
-    def from_dict(self, d):
+    def from_dict(self, d: dict):
         self.__dict__.update(d)
-        syllables = [Syllable(0, 0, 0, "") for syllable in self.syllables]
-        self.syllables = [syllables[i].from_dict(self.syllables[i]) for i in range(len(syllables))]
+        syllables = d["syllables"]  # type: List[dict]
+        self.syllables = [Syllable(0, 0, 0, "").from_dict(syllables[i]) for i in range(len(syllables))]
         return self
 
 
-class Line(CommonMixin):
+class Line(Annotation):
     """
     Класс данных для строк.
     """
-    def __init__(self, begin, end, text, words):
-        self.begin = begin
-        self.end = end
-        self.text = text
+    def __init__(self, begin: int, end: int, text: str, words: List[Word]) -> None:
+        super(Line, self).__init__(begin, end, text)
         self.words = words
 
     def from_dict(self, d):
         self.__dict__.update(d)
-        words = [Word(0, 0, "", []) for word in self.words]
-        self.words = [words[i].from_dict(self.words[i]) for i in range(len(words))]
+        words = d["words"]  # type: List[dict]
+        self.words = [Word(0, 0, "", []).from_dict(words[i]) for i in range(len(words))]
         return self
 
 
@@ -91,32 +126,34 @@ class Markup(CommonMixin):
     """
     Класс данных для разметки в целом с экспортом/импортом в XML и JSON.
     """
-    def __init__(self, text=None, lines=None):
+    def __init__(self, text: str=None, lines: List[Line]=None) -> None:
         # TODO: При изменении структуры разметки менять десериализацию.
         self.text = text
         self.lines = lines
         self.version = 2
 
-    def to_json(self):
+    def to_json(self) -> str:
         return json.dumps(self.to_dict(), ensure_ascii=False)
 
     def from_json(self, st):
         d = json.loads(st)
         self.__dict__.update(d)
-        lines = [Line(0, 0, "", []) for line in self.lines]
-        self.lines = [lines[i].from_dict(self.lines[i]) for i in range(len(lines))]
+        lines = d["lines"]  # type: List[dict]
+        self.lines = [Line(0, 0, "", []).from_dict(lines[i]) for i in range(len(lines))]
         return self
 
-    def to_xml(self):
+    def to_xml(self) -> str:
         """
         Экспорт в XML.
+
         :return self: строка в формате XML
         """
         return dicttoxml(self.to_dict(), custom_root='markup', attr_type=False).decode('utf-8')
 
-    def from_xml(self, xml):
+    def from_xml(self, xml: str):
         """
         Импорт из XML.
+
         :param xml: XML-разметка
         :return self: получившийся объект Markup
         """

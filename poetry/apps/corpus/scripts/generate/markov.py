@@ -6,10 +6,12 @@ import os
 import pickle
 import sys
 import xml.etree.ElementTree as etree
-import numpy as np
 from collections import Counter
+from typing import List
 
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup
+import numpy as np
+
+from poetry.apps.corpus.scripts.main.markup import Markup
 from poetry.apps.corpus.scripts.util.vocabulary import Vocabulary
 from poetry.settings import BASE_DIR
 
@@ -47,9 +49,10 @@ class MarkovModelContainer(object):
             with open(dump_filename, "wb") as f:
                 pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
 
-    def generate_chain(self, words):
+    def generate_chain(self, words: List[int]) -> List[Counter]:
         """
         Генерация переходов в марковских цепях с учётом частотности.
+
         :param words: вершины цепи.
         :return: обновленные переходы.
         """
@@ -59,9 +62,10 @@ class MarkovModelContainer(object):
             self.transitions[current_word][next_word] += 1
         return self.transitions
 
-    def add_markup(self, markup):
+    def add_markup(self, markup: Markup) -> None:
         """
         Дополнение цепей на основе разметки.
+
         :param markup: разметка.
         """
         words = []
@@ -75,9 +79,10 @@ class MarkovModelContainer(object):
         # Генерируем переходы.
         self.generate_chain(list(reversed(words)))
 
-    def get_model(self, word_indices):
+    def get_model(self, word_indices: List[int]) -> np.array:
         """
         Получение языковой модели.
+
         :param word_indices: индексы предыдущих слов.
         :return: языковая модель (распределение вероятностей для следующего слова).
         """

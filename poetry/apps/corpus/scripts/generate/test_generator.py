@@ -8,8 +8,8 @@ import os
 from poetry.settings import BASE_DIR
 from poetry.apps.corpus.scripts.generate.markov import MarkovModelContainer
 from poetry.apps.corpus.scripts.generate.generator import Generator
-from poetry.apps.corpus.scripts.phonetics.ml_accent_classifier import MLAccentClassifier
-from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
+from poetry.apps.corpus.scripts.accents.classifier import MLAccentClassifier
+from poetry.apps.corpus.scripts.accents.dict import AccentDict
 
 
 class TestMarkovChains(unittest.TestCase):

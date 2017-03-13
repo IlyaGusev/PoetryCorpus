@@ -2,13 +2,13 @@
 # Автор: Гусев Илья
 # Описание: Тесты к классификатору метра.
 
-import unittest
 import os
+import unittest
 
-from poetry.settings import BASE_DIR
-from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
-from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry.apps.corpus.scripts.accents.dict import AccentDict
+from poetry.apps.corpus.scripts.main.phonetics import Phonetics
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
+from poetry.settings import BASE_DIR
 
 
 class TestMetreClassifier(unittest.TestCase):

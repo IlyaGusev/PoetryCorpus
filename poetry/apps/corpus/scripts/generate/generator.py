@@ -2,19 +2,23 @@
 # Автор: Гусев Илья
 # Описание: Модуль создания стихотворений.
 
+import numpy as np
 from numpy.random import choice
+from typing import List
 
-from poetry.apps.corpus.scripts.generate.markov import MarkovModelContainer
-from poetry.apps.corpus.scripts.generate.filters import MetreFilter, RhymeFilter
+from poetry.apps.corpus.scripts.generate.filters import Filter, MetreFilter, RhymeFilter
+from poetry.apps.corpus.scripts.main.phonetics import Phonetics
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
-from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
+from poetry.apps.corpus.scripts.util.vocabulary import Vocabulary
+from poetry.apps.corpus.scripts.accents.dict import AccentDict
+from poetry.apps.corpus.scripts.accents.classifier import MLAccentClassifier
 
 
 class Generator(object):
     """
     Генератор стихов
     """
-    def __init__(self, model_container, vocabulary):
+    def __init__(self, model_container, vocabulary: Vocabulary):
         """
         :param model_container: модель с методом get_model(list)
         :param vocabulary: словарь с индексами.
@@ -22,9 +26,11 @@ class Generator(object):
         self.model_container = model_container
         self.vocabulary = vocabulary
 
-    def generate_poem(self, metre_schema="-+", rhyme_pattern="abab", n_syllables=8, letters_to_rhymes=None):
+    def generate_poem(self, metre_schema: str="-+", rhyme_pattern: str="abab", n_syllables: int=8,
+                      letters_to_rhymes: dict=None) -> str:
         """
         Генерация стихотворения с выбранными параметрами.
+
         :param metre_schema: схема метра.
         :param rhyme_pattern: схема рифмы.
         :param n_syllables: количество слогов в строке.
@@ -46,13 +52,15 @@ class Generator(object):
             lines.append(" ".join(reversed(words)))
         return "\n".join(reversed(lines)) + "\n"
 
-    def generate_line(self, metre_filter, rhyme_filter, prev_word_indices):
+    def generate_line(self, metre_filter: MetreFilter, rhyme_filter: RhymeFilter,
+                      prev_word_indices: List[int]) -> List[str]:
         """
         Генерация одной строки с заданными шаблонами метра и рифмы.
+
         :param metre_filter: фильтр по метру.
         :param rhyme_filter: фильтр по рифме.
         :param prev_word_indices: индексы предыдущих слов.
-        :return: получившаяся строка.
+        :return: слова строка.
         """
         metre_filter.reset()
         result = []
@@ -65,9 +73,10 @@ class Generator(object):
             result.append(self.vocabulary.get_word(word_index).text.lower())
         return result
 
-    def generate_word(self, prev_word_indices, filters):
+    def generate_word(self, prev_word_indices: List[int], filters: List[Filter]) -> int:
         """
         Генерация нового слова на основе предыдущих с учётом фильтров.
+
         :param prev_word_indices: индексы предыдущих слов.
         :param filters: фильтры модели.
         :return: индекс нового слова.
@@ -89,9 +98,11 @@ class Generator(object):
             f.pass_word(word)
         return word_index
 
-    def generate_poem_by_line(self, accent_dict, accents_classifier, line, rhyme_pattern="aabb"):
+    def generate_poem_by_line(self, accent_dict: AccentDict, accents_classifier: MLAccentClassifier,
+                              line: str, rhyme_pattern: str="aabb") -> str:
         """
         Генерация стихотвторения по одной строчке.
+
         :param accent_dict: словарь ударений.
         :param accents_classifier: классификатор.
         :param line: строчка.
@@ -108,9 +119,10 @@ class Generator(object):
         return poem
 
     @staticmethod
-    def __choose(model):
+    def __choose(model: np.array):
         """
         Выбор слова из языковой модели.
+
         :param model: языковая модель.
         :return: слово из модели.
         """

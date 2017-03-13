@@ -2,13 +2,13 @@
 # Автор: Гусев Илья
 # Описание: Тесты для модуля фонетики.
 
-import unittest
 import os
+import unittest
 
+from poetry.apps.corpus.scripts.accents.dict import AccentDict
+from poetry.apps.corpus.scripts.main.markup import Syllable, Word, Markup, Line
+from poetry.apps.corpus.scripts.main.phonetics import Phonetics
 from poetry.settings import BASE_DIR
-from poetry.apps.corpus.scripts.phonetics.accent_dict import AccentDict
-from poetry.apps.corpus.scripts.phonetics.phonetics import Phonetics
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Syllable, Word, Markup, Line
 
 
 class TestPhonetics(unittest.TestCase):
@@ -65,7 +65,10 @@ class TestPhonetics(unittest.TestCase):
             'союза': [2],
             'пора': [3, 1],
             'изжила': [5],
-            'меда': [1]
+            'меда': [1],
+            'автоподъёмник': [8],
+            'автоподъемник': [8],
+            'предопределенность': [11]
         }
 
         for word, pos in checks.items():
@@ -74,8 +77,6 @@ class TestPhonetics(unittest.TestCase):
     def test_process_text(self):
         text = "Соломка изжила себя.\n Пора виться майкой в."
         markup = Phonetics.process_text(text, self.accent_dict)
-        new_markup = Markup()
-        self.assertEqual(markup, new_markup.from_xml(markup.to_xml()))
         self.assertEqual(markup, Markup(text, [Line(0, 21, "Соломка изжила себя.", [
             Word(0, 7, "Соломка", [Syllable(0, 2, 0, "Со"),
                                    Syllable(2, 5, 1, "лом", 3),

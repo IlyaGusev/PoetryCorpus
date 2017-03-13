@@ -2,7 +2,10 @@
 # Автор: Гусев Илья
 # Описание: Модуль разбивки на слоги, проставления ударений и получения начальной разметки.
 
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Syllable, Word, Markup, Line
+from typing import List
+
+from poetry.apps.corpus.scripts.accents.dict import AccentDict
+from poetry.apps.corpus.scripts.main.markup import Syllable, Word, Markup, Line
 from poetry.apps.corpus.scripts.util.preprocess import count_vowels, get_first_vowel_position, \
     VOWELS, CLOSED_SYLLABLE_CHARS
 
@@ -12,36 +15,38 @@ class Phonetics:
     Класс-механизм для фонетического анализа слов.
     """
     @staticmethod
-    def get_word_syllables(word):
+    def get_word_syllables(word: str) -> List[Syllable]:
         """
         Разделение слова на слоги.
-        :param word: слово для разбивки на слоги
-        :return syllables: массив слогов слова (list of Syllable)
+
+        :param word: слово для разбивки на слоги.
+        :return syllables: массив слогов слова.
         """
         syllables = []
         begin = 0
         number = 0
         for i in range(len(word)):
-            if word[i] in VOWELS:
-                if i+1 < len(word)-1 and word[i+1] in CLOSED_SYLLABLE_CHARS:
-                    if i+2 < len(word)-1 and word[i+2] in "ьЬ":
-                        # Если после сонорного согласного идёт мягкий знак, заканчиваем на нём. ("бань-ка")
-                        end = i+3
-                    elif i+2 < len(word)-1 and word[i+2] not in VOWELS and \
-                            (word[i+2] not in CLOSED_SYLLABLE_CHARS or word[i+1] == "й"):
-                        # Если после сонорного согласного не идёт гласная или другой сонорный согласный,
-                        # слог закрывается на этом согласном. ("май-ка")
-                        end = i+2
-                    else:
-                        # Несмотря на наличие закрывающего согласного, заканчиваем на гласной.
-                        # ("со-ло", "да-нный", "пол-ный")
-                        end = i+1
+            if word[i] not in VOWELS:
+                continue
+            if i+1 < len(word)-1 and word[i+1] in CLOSED_SYLLABLE_CHARS:
+                if i+2 < len(word)-1 and word[i+2] in "ьЬ":
+                    # Если после сонорного согласного идёт мягкий знак, заканчиваем на нём. ("бань-ка")
+                    end = i+3
+                elif i+2 < len(word)-1 and word[i+2] not in VOWELS and \
+                        (word[i+2] not in CLOSED_SYLLABLE_CHARS or word[i+1] == "й"):
+                    # Если после сонорного согласного не идёт гласная или другой сонорный согласный,
+                    # слог закрывается на этом согласном. ("май-ка")
+                    end = i+2
                 else:
-                    # Если после гласной идёт не закрывающая согласная, заканчиваем на гласной. ("ко-гда")
+                    # Несмотря на наличие закрывающего согласного, заканчиваем на гласной.
+                    # ("со-ло", "да-нный", "пол-ный")
                     end = i+1
-                syllables.append(Syllable(begin, end, number, word[begin:end]))
-                number += 1
-                begin = end
+            else:
+                # Если после гласной идёт не закрывающая согласная, заканчиваем на гласной. ("ко-гда")
+                end = i+1
+            syllables.append(Syllable(begin, end, number, word[begin:end]))
+            number += 1
+            begin = end
         if get_first_vowel_position(word) != -1:
             # Добиваем последний слог до конца слова.
             syllables[-1] = Syllable(syllables[-1].begin, len(word), syllables[-1].number,
@@ -49,12 +54,13 @@ class Phonetics:
         return syllables
 
     @staticmethod
-    def get_word_accent(word, accents_dict):
+    def get_word_accent(word: str, accents_dict: AccentDict) -> List[int]:
         """
         Определение ударения в слове по словарю. Возможно несколько вариантов ударения.
-        :param word: слово для простановки ударений
-        :param accents_dict: экземпляр обёртки для словаря ударений
-        :return accents: массив позиций букв, на которые падает ударение
+
+        :param word: слово для простановки ударений.
+        :param accents_dict: экземпляр обёртки для словаря ударений.
+        :return accents: позиции букв, на которые падает ударение.
         """
         accents = []
         if count_vowels(word) == 0:
@@ -69,42 +75,31 @@ class Phonetics:
         else:
             # Проверяем словарь на наличие форм с ударениями.
             accents = accents_dict.get_accents(word)
-            if 'е' in word:
-                # Находим все возможные варинаты преобразований 'е' в 'ё'.
-                positions = [i for i in range(len(word)) if word[i] == 'е']
-                beam = [word[:positions[0]]]
-                for i in range(len(positions)):
-                    new_beam = []
-                    for prefix in beam:
-                        n = positions[i+1] if i+1 < len(positions) else len(word)
-                        new_beam.append(prefix + 'ё' + word[positions[i]+1:n])
-                        new_beam.append(prefix + 'е' + word[positions[i]+1:n])
-                        beam = new_beam
-                # И проверяем их по словарю.
-                for permutation in beam:
-                    if len(accents_dict.get_accents(permutation)) != 0:
-                        yo_pos = permutation.find("ё")
-                        if yo_pos != -1:
-                            accents.append(yo_pos)
+            if 'е' not in word:
+                return accents
+            # Находим все возможные варинаты преобразований 'е' в 'ё'.
+            positions = [i for i in range(len(word)) if word[i] == 'е']
+            beam = [word[:positions[0]]]
+            for i in range(len(positions)):
+                new_beam = []
+                for prefix in beam:
+                    n = positions[i+1] if i+1 < len(positions) else len(word)
+                    new_beam.append(prefix + 'ё' + word[positions[i]+1:n])
+                    new_beam.append(prefix + 'е' + word[positions[i]+1:n])
+                    beam = new_beam
+            # И проверяем их по словарю.
+            for permutation in beam:
+                if len(accents_dict.get_accents(permutation)) != 0:
+                    yo_pos = permutation.find("ё")
+                    if yo_pos != -1:
+                        accents.append(yo_pos)
         return accents
 
     @staticmethod
-    def get_word_transcription(word):
-        """
-        Фонетическая транскрипция слова на основе упорядоченного набора правил вида A->B,
-        где A и B - последовательности символов.
-        :param word: слово для разбора
-        :return phonetics: фонетическое слово
-        """
-        # TODO: Составление набора правил.
-        ruleset = {
-
-        }
-
-    @staticmethod
-    def process_text(text, accents_dict):
+    def process_text(text: str, accents_dict: AccentDict) -> Markup:
         """
         Получение начального варианта разметки по слогам и ударениям.
+
         :param text: текст для разметки
         :param accents_dict: экземпляр обёртки для словаря ударений
         :return markup: разметка по слогам и ударениям
@@ -140,9 +135,10 @@ class Phonetics:
         return Markup(text, lines)
 
     @staticmethod
-    def get_improved_word_accent(word, accent_dict, accent_classifier):
+    def get_improved_word_accent(word: str, accent_dict: AccentDict, accent_classifier) -> int:
         """
         Получение ударения с учётом классификатора.
+
         :param word: слово.
         :param accent_dict: словарь ударений.
         :param accent_classifier: классификатор ударений.
@@ -156,7 +152,7 @@ class Phonetics:
             return clf_accent
         else:
             clf_accent = accent_classifier.classify_accent(word)
-            intersection = list(set(dict_accents).intersection([clf_accent, ]))
+            intersection = list(set(dict_accents).intersection({clf_accent}))
             if len(intersection) != 0:
                 return intersection[0]
             else:

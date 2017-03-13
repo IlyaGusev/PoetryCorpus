@@ -8,7 +8,7 @@ from keras.layers import LSTM
 from keras.models import Sequential
 from keras.optimizers import RMSprop
 
-from poetry.apps.corpus.scripts.phonetics.phonetics_markup import Markup as Markup
+from poetry.apps.corpus.scripts.main.markup import Markup as Markup
 from poetry.apps.corpus.scripts.util.vocabulary import Vocabulary
 from poetry.settings import BASE_DIR
 
