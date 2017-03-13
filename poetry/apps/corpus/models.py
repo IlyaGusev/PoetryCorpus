@@ -2,6 +2,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, DateTimeField
 
 from poetry.apps.corpus.scripts.metre.metre_classifier import ClassificationResult
+from poetry.apps.corpus.scripts.main.markup import Markup as InternalMarkup
 
 
 class Theme(Model):
@@ -76,7 +77,7 @@ class Markup(Model):
         return reverse("corpus:markup", kwargs={"pk": self.pk})
 
     def get_markup(self):
-        markup = markup.Markup()
+        markup = InternalMarkup()
         markup.from_json(self.text)
         return markup
 
