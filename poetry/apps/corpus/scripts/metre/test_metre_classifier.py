@@ -4,10 +4,11 @@
 
 import os
 import unittest
+import jsonpickle
 
 from poetry.apps.corpus.scripts.accents.dict import AccentDict
 from poetry.apps.corpus.scripts.main.phonetics import Phonetics
-from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
+from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier, ClassificationResult, AccentCorrection
 from poetry.settings import BASE_DIR
 
 
@@ -15,6 +16,11 @@ class TestMetreClassifier(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
+
+    def test_classification_result(self):
+        result = ClassificationResult(5)
+        result.additions["iambos"].append(AccentCorrection(0, 0, 0, "", 0))
+        self.assertEqual(result, jsonpickle.decode(result.to_json()))
 
     def test_metre_classifier(self):
 

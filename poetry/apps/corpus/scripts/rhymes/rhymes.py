@@ -6,7 +6,7 @@ import os
 import pickle
 import sys
 import xml.etree.ElementTree as etree
-from typing import List, Tuple
+from typing import List, Tuple, Set
 
 from poetry.apps.corpus.scripts.main.markup import Markup, Word
 from poetry.apps.corpus.scripts.util.preprocess import VOWELS
@@ -19,29 +19,17 @@ class Rhymes(object):
     Поиск, обработка и хранение рифм.
     """
     def __init__(self):
-        self.rhymes = list()
         self.vocabulary = Vocabulary()
 
-    def add_markup(self, markup: Markup, border: int=6) -> None:
+    def add_markup(self, markup: Markup) -> None:
         """
-        Добавление рифмующихся слов из разметки.
+        Добавление слов из разметки в словарь.
 
         :param markup: разметка.
-        :param border: граница по качеству рифмы.
         """
         for line in markup.lines:
             for word in line.words:
-                is_added = self.vocabulary.add_word(word)
-                if not is_added:
-                    continue
-                self.rhymes.append(set())
-                index = len(self.vocabulary.words) - 1
-                for i, words in enumerate(self.rhymes):
-                    for j in words:
-                        if not Rhymes.is_rhyme(word, self.vocabulary.get_word(j), score_border=border):
-                            continue
-                        self.rhymes[i].append(index)
-                        self.rhymes[index].append(i)
+                self.vocabulary.add_word(word)
 
     def save(self, filename: str) -> None:
         """
@@ -131,7 +119,7 @@ class Rhymes(object):
                features1[0] <= syllable_number_border
 
     @staticmethod
-    def get_all_rhymes():
+    def get_all_words():
         """
         Получние рифм всего корпуса.
 

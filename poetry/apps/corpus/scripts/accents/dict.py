@@ -89,8 +89,6 @@ class AccentDict:
 
     def get_all(self) -> List[Tuple[str, List[Tuple[int, AccentType]]]]:
         """
-        Получение всех элементов словаря.
-
         :return items: все ключи и ударения словаря.
         """
         return self.data.items()

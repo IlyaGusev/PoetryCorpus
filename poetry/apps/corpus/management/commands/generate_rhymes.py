@@ -9,4 +9,4 @@ class Command(BaseCommand):
     help = 'Rhymes generation'
 
     def handle(self, *args, **options):
-        Rhymes.get_all_rhymes()
+        Rhymes.get_all_words()

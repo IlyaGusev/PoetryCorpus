@@ -55,7 +55,7 @@ class Global:
     @classmethod
     def get_rhymes(cls):
         if cls.rhymes is None:
-            cls.rhymes = Rhymes.get_all_rhymes()
+            cls.rhymes = Rhymes.get_all_words()
         return cls.rhymes
 
 

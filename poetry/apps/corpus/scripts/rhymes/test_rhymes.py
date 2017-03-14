@@ -3,14 +3,17 @@
 # Описание: Тесты для модуля фонетики.
 
 import unittest
+import os
 
+from poetry.settings import BASE_DIR
 from poetry.apps.corpus.scripts.main.markup import Syllable, Word
 from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
 
 
 class TestRhymes(unittest.TestCase):
     def test_rhyme(self):
-        rhymes = Rhymes.get_all_rhymes()
+        if os.path.exists(os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml")):
+            Rhymes.get_all_words()
         self.assertTrue(Rhymes.is_rhyme(Word(0, 4, "тишь", [Syllable(0, 4, 0, "тишь", 1)]),
                                         Word(0, 8, "грустишь", [Syllable(0, 3, 0, "гру"),
                                                                 Syllable(3, 8, 1, "стишь", 5)])))

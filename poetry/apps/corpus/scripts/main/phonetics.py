@@ -54,7 +54,7 @@ class Phonetics:
         return syllables
 
     @staticmethod
-    def get_word_accent(word: str, accents_dict: AccentDict) -> List[int]:
+    def get_word_accents(word: str, accents_dict: AccentDict) -> List[int]:
         """
         Определение ударения в слове по словарю. Возможно несколько вариантов ударения.
 
@@ -117,12 +117,9 @@ class Phonetics:
                 # Каждое слово разбиваем на слоги.
                 word = Word(begin_word, i, text[begin_word:i], Phonetics.get_word_syllables(text[begin_word:i]))
                 # Проставляем ударения.
-                accents = Phonetics.get_word_accent(word.text.lower(), accents_dict)
+                accents = Phonetics.get_word_accents(word.text.lower(), accents_dict)
                 # Сопоставляем ударения слогам.
-                for syllable in word.syllables:
-                    for accent in accents:
-                        if syllable.begin <= accent < syllable.end:
-                            syllable.accent = accent
+                word.set_accents(accents)
                 words.append(word)
                 begin_word = -1
             if text[i] == "\n":
@@ -144,7 +141,7 @@ class Phonetics:
         :param accent_classifier: классификатор ударений.
         :return: индекс ударения.
         """
-        dict_accents = Phonetics.get_word_accent(word, accent_dict)
+        dict_accents = Phonetics.get_word_accents(word, accent_dict)
         if len(dict_accents) == 1:
             return dict_accents[0]
         elif len(dict_accents) == 0:

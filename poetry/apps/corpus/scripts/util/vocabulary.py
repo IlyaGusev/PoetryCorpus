@@ -2,20 +2,25 @@
 # Автор: Гусев Илья
 # Описание: Индексы слов для языковой модели.
 
+from typing import Dict, List, Set
+
+from poetry.apps.corpus.scripts.main.markup import Word
+
 
 class Vocabulary(object):
     """
     Индексированный словарь.
     """
-    def __init__(self):
-        self.word_to_index = {}
-        self.words = []
-        self.shorts_set = set()
+    def __init__(self) -> None:
+        self.word_to_index = {}  # type: Dict[str, int]
+        self.words = []  # type: List[Word]
+        self.shorts_set = set()  # type: Set[str]
 
-    def add_word(self, word):
+    def add_word(self, word: Word) -> bool:
         """
         Добавление слова.
-        :param word: слово (Word).
+
+        :param word: слово.
         :return: слово новое или нет.
         """
         short = word.get_short()
@@ -26,9 +31,10 @@ class Vocabulary(object):
             return True
         return False
 
-    def get_word_index(self, word):
+    def get_word_index(self, word: Word) -> int:
         """
         Получить индекс слова.
+
         :param word: слово (Word).
         :return: индекс.
         """
@@ -37,17 +43,19 @@ class Vocabulary(object):
             return self.word_to_index[short]
         raise IndexError("Can't find word: " + word.text)
 
-    def get_word(self, index):
+    def get_word(self, index: int) -> Word:
         """
         Получить слово по индексу.
+
         :param index: индекс.
         :return: слово.
         """
         return self.words[index]
 
-    def shrink(self, short_words):
+    def shrink(self, short_words: List[str]) -> None:
         """
         Обрезать словарь по заданным коротким формам слов.
+
         :param short_words: короткие формы слов.
         """
         new_words = []

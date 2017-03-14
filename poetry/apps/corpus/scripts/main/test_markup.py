@@ -7,9 +7,7 @@ from poetry.apps.corpus.scripts.main.markup import Markup, Line, Word, Syllable
 
 
 class TestMarkup(unittest.TestCase):
-    def test_from_to(self):
-        text = "Соломка изжила себя.\n Пора виться майкой в."
-        markup = Markup(text, [
+    example_markup = Markup("Соломка изжила себя.\n Пора виться майкой в.", [
             Line(0, 21, "Соломка изжила себя.", [
                 Word(0, 7, "Соломка",
                      [Syllable(0, 2, 0, "Со"),
@@ -34,8 +32,10 @@ class TestMarkup(unittest.TestCase):
                       Syllable(3, 6, 1, "кой")]),
                 Word(41, 42, "в", [])
                 ])])
+
+    def test_from_to(self):
         clean_markup = Markup()
-        self.assertEqual(markup, clean_markup.from_xml(markup.to_xml()))
+        self.assertEqual(TestMarkup.example_markup, clean_markup.from_xml(TestMarkup.example_markup.to_xml()))
         clean_markup = Markup()
-        self.assertEqual(markup, clean_markup.from_json(markup.to_json()))
+        self.assertEqual(TestMarkup.example_markup, clean_markup.from_json(TestMarkup.example_markup.to_json()))
 
