@@ -1,3 +1,5 @@
+import jsonpickle
+
 from django.core.urlresolvers import reverse
 from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, DateTimeField
 
@@ -82,9 +84,8 @@ class Markup(Model):
         return markup
 
     def get_automatic_additional(self):
-        clf = ClassificationResult()
         if self.additional:
-            clf.from_json(self.additional)
+            clf = jsonpickle.decode(self.additional)
             return clf
         else:
             return ""
