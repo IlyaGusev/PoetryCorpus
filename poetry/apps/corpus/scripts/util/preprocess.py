@@ -62,3 +62,7 @@ def get_first_vowel_position(string):
         if string[i] in VOWELS:
             return i
     return -1
+
+
+def etree_to_dict(t):
+    return {t.tag: map(etree_to_dict, t.iterchildren()) or t.text}

@@ -140,7 +140,7 @@ class Markup(CommonMixin):
 
         :return self: строка в формате XML
         """
-        return dicttoxml(self.to_dict(), custom_root='markup', attr_type=False).decode('utf-8')
+        return dicttoxml(self.to_dict(), custom_root='markup', attr_type=False).decode('utf-8').replace("\n", "\\n")
 
     def from_xml(self, xml: str) -> 'Markup':
         """
@@ -151,7 +151,7 @@ class Markup(CommonMixin):
         """
         root = etree.fromstring(xml)
         if root.find("version") is None or int(root.find("version").text) != self.version:
-            return None
+            raise TypeError("Другая версия разметки")
         lines_node = root.find("lines")
         lines = []
         for line_node in lines_node.findall("item"):

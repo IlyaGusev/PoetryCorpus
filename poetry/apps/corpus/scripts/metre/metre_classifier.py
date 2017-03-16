@@ -299,7 +299,8 @@ class MetreClassifier(object):
         return markup
 
     @staticmethod
-    def improve_markup(markup: Markup, accents_classifier: MLAccentClassifier=None) -> Markup:
+    def improve_markup(markup: Markup, accents_classifier: MLAccentClassifier=None) -> \
+            Tuple[Markup, ClassificationResult]:
         """
         Улучшение разметки метрическим и машинным классификатором.
 

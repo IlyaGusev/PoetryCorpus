@@ -6,10 +6,10 @@ import os
 import unittest
 
 from poetry.apps.corpus.scripts.accents.dict import AccentDict
-from poetry.apps.corpus.scripts.main.markup import Syllable, Word, Markup, Line
+from poetry.apps.corpus.scripts.main.markup import Syllable
 from poetry.apps.corpus.scripts.main.phonetics import Phonetics
 from poetry.settings import BASE_DIR
-from poetry.apps.corpus.scripts.main.test_markup import TestMarkup
+from poetry.apps.corpus.scripts.util.data import MARKUP_EXAMPLE
 
 
 class TestPhonetics(unittest.TestCase):
@@ -78,4 +78,4 @@ class TestPhonetics(unittest.TestCase):
     def test_process_text(self):
         text = "Соломка изжила себя.\n Пора виться майкой в."
         markup = Phonetics.process_text(text, self.accent_dict)
-        self.assertEqual(markup, TestMarkup.example_markup)
+        self.assertEqual(markup, MARKUP_EXAMPLE)
