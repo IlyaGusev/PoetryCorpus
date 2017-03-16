@@ -13,19 +13,18 @@ import numpy as np
 
 from poetry.apps.corpus.scripts.main.markup import Markup
 from poetry.apps.corpus.scripts.util.vocabulary import Vocabulary
-from poetry.settings import BASE_DIR
+from poetry.apps.corpus.scripts.convertion.reader import Reader, FileTypeEnum
 
 
 class MarkovModelContainer(object):
     """
     Марковские цепи.
     """
-    def __init__(self):
+    def __init__(self, dump_filename: str, markup_dump_path: str=None):
         self.transitions = list()
         self.vocabulary = Vocabulary()
 
         # Делаем дамп модели для ускорения загрузки.
-        dump_filename = os.path.join(BASE_DIR, "datasets", "markov.pickle")
         if os.path.isfile(dump_filename):
             with open(dump_filename, "rb") as f:
                 markov = pickle.load(f)
@@ -34,17 +33,13 @@ class MarkovModelContainer(object):
             sys.stdout.write("Starting\n")
             sys.stdout.flush()
             i = 0
-            filename = os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml")
-            for event, elem in etree.iterparse(filename, events=['end']):
-                if event == 'end' and elem.tag == 'markup':
-                    markup = Markup()
-                    markup.from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))
-                    self.add_markup(markup)
-                    elem.clear()
-                    i += 1
-                    if i % 500 == 0:
-                        sys.stdout.write(str(i)+"\n")
-                        sys.stdout.flush()
+            markups = Reader.read_markups(markup_dump_path, FileTypeEnum.XML, is_processed=True)
+            for markup in markups:
+                self.add_markup(markup)
+                i += 1
+                if i % 500 == 0:
+                    sys.stdout.write(str(i)+"\n")
+                    sys.stdout.flush()
 
             with open(dump_filename, "wb") as f:
                 pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)

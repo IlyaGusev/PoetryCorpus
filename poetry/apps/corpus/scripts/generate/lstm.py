@@ -16,10 +16,10 @@ UNKNOWN_WORD = "#########"
 
 
 class LSTMModelContainer:
-    def __init__(self):
+    def __init__(self, markup_dump_filename: str):
         self.nn_model = None
         self.vocabulary = Vocabulary()
-        self.get_vocabulary(60000)
+        self.get_vocabulary(markup_dump_filename, 60000)
         self.train(60000, 10, )
 
     def get_model(self, word_indices, sentence_length):
@@ -30,10 +30,9 @@ class LSTMModelContainer:
         model = self.nn_model.predict(x, verbose=0)[0]
         return model
 
-    def get_vocabulary(self, words_count):
+    def get_vocabulary(self, markup_dump_filename, words_count):
         words_counter = Counter()
-        filename = os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml")
-        for event, elem in etree.iterparse(filename, events=['end']):
+        for event, elem in etree.iterparse(markup_dump_filename, events=['end']):
             if event == 'end' and elem.tag == 'markup':
                 markup = Markup()
                 markup.from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))
@@ -45,13 +44,13 @@ class LSTMModelContainer:
         self.vocabulary.add_word(UNKNOWN_WORD)
         self.vocabulary.add_word("\n")
 
-    def train(self, sentence_length=10, step=3, local_batch_size=128, global_batch_size=8192, iterations_count=30):
+    def train(self, markup_dump_filename, sentence_length=10, step=3, local_batch_size=128,
+              global_batch_size=8192, iterations_count=30):
         model = self.__build_model(sentence_length, local_batch_size)
         for iteration in range(iterations_count):
             text = []
             text_index = 0
-            filename = os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml")
-            for event, elem in etree.iterparse(filename, events=['end']):
+            for event, elem in etree.iterparse(markup_dump_filename, events=['end']):
                 if event == 'end' and elem.tag == 'markup':
                     markup = Markup()
                     markup.from_xml(etree.tostring(elem, encoding='utf-8', method='xml'))

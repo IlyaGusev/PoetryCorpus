@@ -5,14 +5,14 @@
 import unittest
 import os
 
-from poetry.settings import BASE_DIR
 from poetry.apps.corpus.scripts.main.markup import Syllable, Word
 from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
+from poetry.apps.corpus.scripts.settings import MARKUPS_DUMP_XML_PATH
 
 
 class TestRhymes(unittest.TestCase):
     def test_rhyme(self):
-        if os.path.exists(os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml")):
+        if os.path.exists(MARKUPS_DUMP_XML_PATH):
             Rhymes.get_all_words()
         self.assertTrue(Rhymes.is_rhyme(Word(0, 4, "тишь", [Syllable(0, 4, 0, "тишь", 1)]),
                                         Word(0, 8, "грустишь", [Syllable(0, 3, 0, "гру"),

@@ -5,7 +5,7 @@
 import unittest
 import os
 
-from poetry.settings import BASE_DIR
+from poetry.apps.corpus.scripts.settings import DICT_PATH
 from poetry.apps.corpus.scripts.accents.dict import AccentDict, AccentType
 from poetry.apps.corpus.scripts.util.preprocess import VOWELS
 
@@ -13,7 +13,7 @@ from poetry.apps.corpus.scripts.util.preprocess import VOWELS
 class TestAccentDict(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path = os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict")
+        cls.path = DICT_PATH
         cls.trie_path = cls.path + ".trie"
         cls.txt_path = cls.path + ".txt"
         cls.dict = AccentDict(cls.path)

@@ -68,6 +68,12 @@ class Word(Annotation):
                 accent = syllable.accent
         return accent
 
+    def get_accented_syllables_numbers(self) -> List[int]:
+        """
+        :return: номера слогов, на которые падают ударения.
+        """
+        return [syllable.number for syllable in self.syllables if syllable.accent != -1]
+
     def set_accents(self, accents: List[int]) -> None:
         """
         Задать ударения, все остальные убираются.

@@ -2,20 +2,20 @@
 # Автор: Гусев Илья
 # Описание: Тесты к классификатору метра.
 
-import os
 import unittest
 import jsonpickle
 
+from poetry.apps.corpus.scripts.main.markup import Markup
 from poetry.apps.corpus.scripts.accents.dict import AccentDict
 from poetry.apps.corpus.scripts.main.phonetics import Phonetics
 from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier, ClassificationResult, AccentCorrection
-from poetry.settings import BASE_DIR
+from poetry.apps.corpus.scripts.settings import DICT_PATH
 
 
 class TestMetreClassifier(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
+        cls.accent_dict = AccentDict(DICT_PATH)
 
     def test_classification_result(self):
         result = ClassificationResult(5)
@@ -23,20 +23,31 @@ class TestMetreClassifier(unittest.TestCase):
         self.assertEqual(result, jsonpickle.decode(result.to_json()))
 
     def test_metre_classifier(self):
-
         text = "Горит восток зарёю новой.\n" \
                "Уж на равнине, по холмам\n" \
                "Грохочут пушки. Дым багровый\n" \
                "Кругами всходит к небесам."
-        result_metre = MetreClassifier.classify_metre(Phonetics.process_text(text, self.accent_dict)).metre
-        self.assertEqual(result_metre, "iambos")
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        self.assertIsInstance(markup, Markup)
+        self.assertIsInstance(result, ClassificationResult)
+        self.assertEqual(result.get_metre_errors_count(), 0)
+        self.assertEqual(result.metre, "iambos")
 
         text = "Буря мглою небо кроет,\n" \
                "Вихри снежные крутя;\n" \
                "То, как зверь, она завоет,\n" \
                "То заплачет, как дитя..."
-        result_metre = MetreClassifier.classify_metre(Phonetics.process_text(text, self.accent_dict)).metre
-        self.assertEqual(result_metre, "choreios")
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        self.assertEqual(result.get_metre_errors_count(), 0)
+        self.assertEqual(result.metre, "choreios")
+
+        text = "Буря мглою небо парад,\n" \
+               "Вихри снежные крутя;\n" \
+               "То, как зверь, она завоет,\n" \
+               "То заплачет, как дитя..."
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        self.assertEqual(result.get_metre_errors_count(), 1)
+        self.assertEqual(result.metre, "choreios")
 
         text = "На стеклах нарастает лед,\n"\
                "Часы твердят: «Не трусь!»\n"\
@@ -46,8 +57,9 @@ class TestMetreClassifier(unittest.TestCase):
                "«Не пропускай беду!»\n"\
                "Кто воет за стеной, как зверь,\n"\
                "Кто прячется в саду?"
-        result_metre = MetreClassifier.classify_metre(Phonetics.process_text(text, self.accent_dict)).metre
-        self.assertEqual(result_metre, "iambos")
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        self.assertEqual(result.get_metre_errors_count(), 0)
+        self.assertEqual(result.metre, "iambos")
 
         text = "Вот уж вечер. Роса\n" \
                "Блестит на крапиве.\n"\
@@ -64,8 +76,9 @@ class TestMetreClassifier(unittest.TestCase):
                "Видно, за опушкой,\n"\
                "Сонный сторож стучит\n"\
                "Мертвой колотушкой."
-        result_metre = MetreClassifier.classify_metre(Phonetics.process_text(text, self.accent_dict)).metre
-        self.assertTrue(result_metre == "dolnik3" or result_metre == "dolnik2")
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        self.assertEqual(result.get_metre_errors_count(), 0)
+        self.assertTrue(result.metre == "dolnik3" or result.metre == "dolnik2")
 
         text = "Глыбу кварца разбили молотом,\n" \
                "И, веселым огнем горя,\n" \
@@ -98,7 +111,6 @@ class TestMetreClassifier(unittest.TestCase):
                "Есть над чем поразмыслить в жизни,\n" \
                "Кроме\n" \
                "Золота-серебра."
-        result_metre = MetreClassifier.classify_metre(Phonetics.process_text(text, self.accent_dict)).metre
-        self.assertTrue(result_metre == "dolnik3" or result_metre == "dolnik2")
-
-        MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        markup, result = MetreClassifier.improve_markup(Phonetics.process_text(text, self.accent_dict))
+        self.assertEqual(result.get_metre_errors_count(), 0)
+        self.assertTrue(result.metre == "dolnik3" or result.metre == "dolnik2")

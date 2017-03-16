@@ -3,6 +3,7 @@
 # Описание: Тесты для разметки.
 
 import unittest
+
 from poetry.apps.corpus.scripts.util.data import MARKUP_EXAMPLE
 from poetry.apps.corpus.scripts.main.markup import Markup
 

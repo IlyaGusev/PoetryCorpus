@@ -18,5 +18,3 @@ class TestPatterns(unittest.TestCase):
         self.assertCountEqual(Patterns.compile_pattern("((s)(u)?)*", 4), ["susu", "ssss", "suss", 'sssu', 'ssus'])
 
 
-
-

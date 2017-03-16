@@ -3,7 +3,7 @@
 # Описание: Шаблоны ритма.
 
 from collections import defaultdict
-from typing import List
+from typing import List, Dict
 from enum import Enum
 
 
@@ -139,19 +139,18 @@ class CompiledPatterns(object):
     """
     Скомпилированные шаблоны (нужно, чтобы не пересчитывать их каждый раз).
     """
-
-    def __init__(self) -> None:
+    def __init__(self, metres: Dict[str, str], border: int) -> None:
         self.compilations = defaultdict(lambda: defaultdict(lambda: ""))
+        for metre_name, metre_pattern in metres.items():
+            for i in range(1, border+1):
+                self.compilations[metre_name][i] = Patterns.compile_pattern(metre_pattern, i)
 
-    def get_patterns(self, metre_name: str, metre_pattern: str, syllables_count: int) -> List[str]:
+    def get_patterns(self, metre_name: str, syllables_count: int) -> List[str]:
         """
         Получить или посчитать шаблоны метра для заданного метра.
 
         :param metre_name: название метра.
-        :param metre_pattern: шаблон метра.
         :param syllables_count: количество слогов в шаблоне.
         :return: итоговые скомпилированные шаблоны метра.
         """
-        if metre_name not in self.compilations or syllables_count not in self.compilations[metre_name]:
-            self.compilations[metre_name][syllables_count] = Patterns.compile_pattern(metre_pattern, syllables_count)
         return self.compilations[metre_name][syllables_count]

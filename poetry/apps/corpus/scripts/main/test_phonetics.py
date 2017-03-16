@@ -2,20 +2,19 @@
 # Автор: Гусев Илья
 # Описание: Тесты для модуля фонетики.
 
-import os
 import unittest
 
 from poetry.apps.corpus.scripts.accents.dict import AccentDict
 from poetry.apps.corpus.scripts.main.markup import Syllable
 from poetry.apps.corpus.scripts.main.phonetics import Phonetics
-from poetry.settings import BASE_DIR
+from poetry.apps.corpus.scripts.settings import DICT_PATH
 from poetry.apps.corpus.scripts.util.data import MARKUP_EXAMPLE
 
 
 class TestPhonetics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
+        cls.accent_dict = AccentDict(DICT_PATH)
 
     def test_syllables(self):
         checks = {

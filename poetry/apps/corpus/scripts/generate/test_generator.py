@@ -5,7 +5,7 @@
 import unittest
 import os
 
-from poetry.settings import BASE_DIR
+from poetry.apps.corpus.scripts.settings import DICT_PATH, CLASSIFIER_PATH, MARKUPS_DUMP_XML_PATH, MARKOV_PICKLE
 from poetry.apps.corpus.scripts.generate.markov import MarkovModelContainer
 from poetry.apps.corpus.scripts.generate.generator import Generator
 from poetry.apps.corpus.scripts.accents.classifier import MLAccentClassifier
@@ -15,12 +15,12 @@ from poetry.apps.corpus.scripts.accents.dict import AccentDict
 class TestMarkovChains(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.accents_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
-        cls.accents_classifier = MLAccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), cls.accents_dict)
+        cls.accents_dict = AccentDict(DICT_PATH)
+        cls.accents_classifier = MLAccentClassifier(CLASSIFIER_PATH, cls.accents_dict)
 
     def test_generate(self):
-        if os.path.exists(os.path.join(BASE_DIR, "datasets", "corpus", "markup_dump.xml")):
-            markov = MarkovModelContainer()
+        if os.path.exists(MARKUPS_DUMP_XML_PATH):
+            markov = MarkovModelContainer(MARKOV_PICKLE, MARKUPS_DUMP_XML_PATH)
             generator = Generator(markov, markov.vocabulary)
             poem1 = generator.generate_poem(metre_schema="-+", rhyme_pattern="abab", n_syllables=8)
             self.assertEqual(len(poem1.split("\n")), 5)
