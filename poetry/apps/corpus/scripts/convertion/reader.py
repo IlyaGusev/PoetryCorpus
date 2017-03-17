@@ -19,6 +19,9 @@ RAW_SEPARATOR = "\n\n\n"
 
 
 class FileTypeEnum(Enum):
+    """
+    Тип файла.
+    """
     RAW = ".txt"
     XML = ".xml"
     JSON = ".json"
@@ -26,9 +29,21 @@ class FileTypeEnum(Enum):
 
 
 class Reader(object):
+    """
+    Считывание из файлов.
+    """
     @staticmethod
     def read_markups(path: str, source_type: FileTypeEnum, is_processed: bool,
                      accents_dict: AccentDict=None, accents_classifier: MLAccentClassifier=None) -> Iterator[Markup]:
+        """
+        Считывание разметок.
+
+        :param path: путь к файлу/папке.
+        :param source_type: тип файлов.
+        :param is_processed: уже размеченные тексты?
+        :param accents_dict: словарь ударений (для неразмеченных текстов).
+        :param accents_classifier: классификатор ударений (для неразмеченных текстов).
+        """
         paths = Reader.__get_paths(path, source_type.value)
         for filename in paths:
             with open(filename, "r", encoding="utf-8") as file:
@@ -54,6 +69,12 @@ class Reader(object):
 
     @staticmethod
     def read_texts(path: str, source_type: FileTypeEnum) -> Iterator[str]:
+        """
+        Считывание текстов.
+
+        :param path: путь к файлу/папке.
+        :param source_type: тип файлов.
+        """
         paths = Reader.__get_paths(path, source_type.value)
         for filename in paths:
             with open(filename, "r", encoding="utf-8") as file:
@@ -83,6 +104,12 @@ class Reader(object):
 
     @staticmethod
     def __get_paths(path: str, ext: str) -> Iterator[str]:
+        """
+        Получение всех файлов заданного типа по заданному пути.
+
+        :param path: путь к файлу/папке.
+        :param ext: требуемое расширение.
+        """
         if os.path.isfile(path):
             if ext == os.path.splitext(path)[1]:
                 yield path
@@ -95,22 +122,25 @@ class Reader(object):
                     return Reader.__get_paths(folder, ext)
 
     @staticmethod
-    def __get_source_type(path):
-        ext = ""
-        current_path = path
-        while ext != "":
-            p = os.listdir(current_path)[0]
-            ext = os.path.splitext(p)[1]
-            current_path = p
-        return FileTypeEnum(ext)
-
-    @staticmethod
     def __markup_text(text: str, accents_dict: AccentDict=None,
                       accents_classifier: MLAccentClassifier=None) -> Markup:
+        """
+        Разметка текста.
+
+        :param text: текст.
+        :param accents_dict: словарь ударений.
+        :param accents_classifier: классификатор ударений.
+        :return: разметка.
+        """
         markup = Phonetics.process_text(text, accents_dict)
         markup = MetreClassifier.improve_markup(markup, accents_classifier)[0]
         return markup
 
     @staticmethod
     def __xml_iter(file, tag):
+        """
+        :param file: xml файл.
+        :param tag: заданный тег.
+        :return: все элементы с заданными тегами в xml.
+        """
         return (elem for event, elem in etree.iterparse(file, events=['end']) if event == 'end' and elem.tag == tag)
