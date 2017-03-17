@@ -22,6 +22,7 @@ class FileTypeEnum(Enum):
     RAW = ".txt"
     XML = ".xml"
     JSON = ".json"
+    STIHI = ""
 
 
 class Reader(object):
@@ -68,6 +69,17 @@ class Reader(object):
                     text = file.read()
                     for t in text.split(RAW_SEPARATOR):
                         yield t
+                elif source_type == FileTypeEnum.STIHI:
+                    text = ""
+                    is_text = False
+                    for line in file:
+                        if "<div" in line:
+                            is_text = True
+                        elif "</div>" in line:
+                            is_text = False
+                            yield text
+                        elif is_text:
+                            text += line + "\n"
 
     @staticmethod
     def __get_paths(path: str, ext: str) -> Iterator[str]:
