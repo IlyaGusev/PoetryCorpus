@@ -8,7 +8,7 @@ from typing import List
 
 from poetry.apps.corpus.scripts.generate.filters import Filter, MetreFilter, RhymeFilter
 from poetry.apps.corpus.scripts.main.phonetics import Phonetics
-from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
+from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier, CompilationsSingleton
 from poetry.apps.corpus.scripts.util.vocabulary import Vocabulary
 from poetry.apps.corpus.scripts.accents.dict import AccentDict
 from poetry.apps.corpus.scripts.accents.classifier import MLAccentClassifier
@@ -111,7 +111,8 @@ class Generator(object):
         """
         markup, result = MetreClassifier.improve_markup(Phonetics.process_text(line, accent_dict), accents_classifier)
         rhyme_word = markup.lines[0].words[-1]
-        metre_pattern = result.lines_result[0].get_best_patterns()[result.metre]
+        count_syllables = sum([len(word.syllables) for word in markup.lines[0].words])
+        metre_pattern = CompilationsSingleton.get().get_patterns(result.metre, count_syllables)[0]
         metre_pattern = metre_pattern.lower().replace("s", "+").replace("u", "-")
         letters_to_rhymes = {rhyme_pattern[0]: {rhyme_word}}
         generated = self.generate_poem(metre_pattern, rhyme_pattern, len(metre_pattern), letters_to_rhymes)
