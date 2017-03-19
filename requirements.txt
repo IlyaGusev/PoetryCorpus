@@ -10,3 +10,4 @@ django-robots == 2.0
 elasticsearch == 5.1.0
 jsonpickle == 0.9.4
 rupo == 0.1.2
+djangorestframework == 3.6.2
