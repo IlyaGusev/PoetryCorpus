@@ -32,10 +32,12 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name="about.html"), name='about'),
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('accounts.urls', namespace='accounts')),
+    url(r'^api/', include('api.urls', namespace='api')),
     url(r'^corpus/', include('corpus.urls', namespace='corpus')),
     url(r'^download/', TemplateView.as_view(template_name="download.html"), name='download'),
     url(r'^sitemap\.xml$', index, {'sitemaps': sitemaps}),
     url(r'^sitemap-(?P<section>.+)\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^robots\.txt', include('robots.urls')),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'poetry.apps.corpus',
     'poetry',
     'reversion',
+    'rest_framework',
+    'api'
 ]
 
 MIDDLEWARE = [
