@@ -8,8 +8,5 @@ django-reversion == 2.0.8
 django-haystack == 2.6.0
 django-robots == 2.0
 elasticsearch == 5.1.0
-numpy == 1.11.3
-scipy == 0.18.1
-scikit-learn == 0.18.1
 jsonpickle == 0.9.4
-rupo >= 0.1
+rupo == 0.1.2
