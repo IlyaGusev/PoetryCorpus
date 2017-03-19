@@ -1,5 +1,4 @@
 import datetime
-import os
 
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse_lazy, reverse
@@ -9,54 +8,12 @@ from django.views.generic import DetailView, ListView, FormView
 import poetry
 from poetry.apps.corpus.forms import GeneratorForm, AccentsForm, RhymesForm, AnalysisForm
 from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem
-from poetry.apps.corpus.scripts.accents.classifier import MLAccentClassifier
-from poetry.apps.corpus.scripts.accents.dict import AccentDict
-from poetry.apps.corpus.scripts.generate.generator import Generator
-from poetry.apps.corpus.scripts.generate.markov import MarkovModelContainer
-from poetry.apps.corpus.scripts.main.markup import Markup, Word, Line
-from poetry.apps.corpus.scripts.main.phonetics import Phonetics
-from poetry.apps.corpus.scripts.metre.metre_classifier import MetreClassifier
-from poetry.apps.corpus.scripts.rhymes.rhymes import Rhymes
-from poetry.apps.corpus.scripts.util.preprocess import VOWELS
-from poetry.settings import BASE_DIR
+from poetry.apps.corpus.scripts.settings import MARKUPS_DUMP_XML_PATH, MARKOV_PICKLE, VOCAB_PICKLE
 
-
-class Global:
-    accent_dict = None
-    accent_classifier = None
-    markov = None
-    rhymes = None
-    generator = None
-
-    @classmethod
-    def get_dict(cls):
-        if cls.accent_dict is None:
-            cls.accent_dict = AccentDict(os.path.join(BASE_DIR, "datasets", "dicts", "accents_dict"))
-        return cls.accent_dict
-
-    @classmethod
-    def get_classifier(cls):
-        if cls.accent_classifier is None:
-            cls.accent_classifier = MLAccentClassifier(os.path.join(BASE_DIR, "datasets", "models"), cls.get_dict())
-        return cls.accent_classifier
-
-    @classmethod
-    def get_markov(cls):
-        if cls.markov is None:
-            cls.markov = MarkovModelContainer()
-        return cls.markov
-
-    @classmethod
-    def get_generator(cls):
-        if cls.generator is None:
-            cls.generator = Generator(cls.get_markov(), cls.get_markov().vocabulary)
-        return cls.generator
-
-    @classmethod
-    def get_rhymes(cls):
-        if cls.rhymes is None:
-            cls.rhymes = Rhymes.get_all_words()
-        return cls.rhymes
+from rupo.main.markup import Markup, Word, Line
+from rupo.main.phonetics import Phonetics
+from rupo.util.preprocess import VOWELS
+from rupo.api import get_accent, generate_poem_by_line, generate_poem, get_improved_markup, get_word_rhymes
 
 
 class PoemsListView(ListView):
@@ -161,14 +118,15 @@ class GeneratorView(FormView):
             line=self.request.GET.get('line', ""))
         try:
             if settings.line != "":
-                context['generated'] = Global.get_generator().generate_poem_by_line(Global.get_dict(),
-                                                                                    Global.get_classifier(),
-                                                                                    settings.line,
-                                                                                    settings.rhyme_schema)
+                context['generated'] = \
+                    generate_poem_by_line(MARKUPS_DUMP_XML_PATH, MARKOV_PICKLE, VOCAB_PICKLE,
+                                          settings.line,
+                                          settings.rhyme_schema)
             else:
-                context['generated'] = Global.get_generator().generate_poem(settings.metre_schema,
-                                                                            settings.rhyme_schema,
-                                                                            settings.syllables_count)
+                context['generated'] = generate_poem(MARKUPS_DUMP_XML_PATH, MARKOV_PICKLE, VOCAB_PICKLE,
+                                                     settings.metre_schema,
+                                                     settings.rhyme_schema,
+                                                     settings.syllables_count)
         except RuntimeError as e:
             context['generated'] = e
         AutomaticPoem.objects.create(text=context['generated'], date=datetime.datetime.now(), settings=settings)
@@ -184,7 +142,7 @@ class AccentsView(FormView):
         context = super(AccentsView, self).get_context_data(**kwargs)
         word = self.request.GET.get('word', "")
         if word != "":
-            accent = Phonetics.get_improved_word_accent(word, Global.get_dict(), Global.get_classifier())
+            accent = get_accent(word)
             syllables = Phonetics.get_word_syllables(word)
             for syllable in syllables:
                 if syllable.begin <= accent < syllable.end:
@@ -205,13 +163,7 @@ class RhymesView(FormView):
         context = super(RhymesView, self).get_context_data(**kwargs)
         word = self.request.GET.get('word', "")
         if word != "":
-            accent = Phonetics.get_improved_word_accent(word, Global.get_dict(), Global.get_classifier())
-            syllables = Phonetics.get_word_syllables(word)
-            for syllable in syllables:
-                if syllable.begin <= accent < syllable.end:
-                    syllable.accent = accent
-            markup_word = Word(0, len(word) - 1, word, syllables)
-            context['rhymes'] = [w.text for w in Global.get_rhymes().get_word_rhymes(markup_word)]
+            context['rhymes'] = [w for w in get_word_rhymes(word, VOCAB_PICKLE, MARKUPS_DUMP_XML_PATH)]
         return context
 
 
@@ -225,8 +177,7 @@ class AnalysisView(FormView):
         text = self.request.GET.get('text', "")
         if text == "":
             return context
-        markup = Phonetics.process_text(text, Global.get_dict())
-        markup, result = MetreClassifier.improve_markup(markup, Global.get_classifier())
+        markup, result = get_improved_markup(text)
         context['accented_text'] = process_markup(markup)
         context['additional'] = result
         return context

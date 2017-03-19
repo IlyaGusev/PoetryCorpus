@@ -5,7 +5,7 @@ import xml.etree.ElementTree as etree
 
 from dicttoxml import dicttoxml
 
-from poetry.apps.corpus.scripts.util.preprocess import to_cyrrilic, normilize_line
+from rupo.util.preprocess import to_cyrrilic, normilize_line
 from poetry.settings import BASE_DIR
 
 

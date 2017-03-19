@@ -3,8 +3,7 @@ import jsonpickle
 from django.core.urlresolvers import reverse
 from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, DateTimeField
 
-from poetry.apps.corpus.scripts.metre.metre_classifier import ClassificationResult
-from poetry.apps.corpus.scripts.main.markup import Markup as InternalMarkup
+from rupo.main.markup import Markup as InternalMarkup
 
 
 class Theme(Model):
