@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/IlyaGusev/PoetryCorpus.svg?branch=master)](https://travis-ci.org/IlyaGusev/PoetryCorpus)
 [![Code Climate](https://codeclimate.com/github/IlyaGusev/PoetryCorpus/badges/gpa.svg)](https://codeclimate.com/github/IlyaGusev/PoetryCorpus)
 
+Пакет для анализа и синтеза стихов: https://github.com/IlyaGusev/rupo
+
 ### Статистика корпуса текстов с метаинформацией ###
 * Символов:  13208090
 * Слов:  2186827
