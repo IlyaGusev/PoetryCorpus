@@ -17,26 +17,33 @@ $(function() {
             var line_id = id.split('-')[0];
             var word_id = id.split('-')[0] + '-' + id.split('-')[1];
             var text = $(this).text();
-            var accent = -1;
-            for (var i = 0; i < text.length; i++) {
-                if (VOWELS.indexOf(text[i]) != -1) {
-                    accent = i;
-                    break;
+            var accented = $(this).hasClass('green') && $(this).hasClass('bck');
+            if( !accented ) {
+                var accent = -1;
+                for (var i = 0; i < text.length; i++) {
+                    if (VOWELS.indexOf(text[i]) != -1) {
+                        accent = i;
+                        break;
+                    }
                 }
+                var accent_elems = $('#' + word_id).find('.bck.green,.bck.red');
+                if (accent_elems.length) {
+                    accent_elems.each(function (index) {
+                        var removing_id = $(this)[0].id;
+                        addToSet(removing_id);
+                        $(this).removeClass('green');
+                        $(this).removeClass('red');
+                        $(this).addClass('default');
+                    });
+                }
+                $(this).removeClass('default');
+                $(this).addClass('green');
+                addToSet(id);
+            } else {
+                $(this).removeClass('green');
+                $(this).addClass('default');
+                addToSet(id);
             }
-            var accent_elems = $('#'+word_id).find('.bck.green,.bck.red');
-            if (accent_elems.length) {
-                accent_elems.each(function( index ) {
-                    var removing_id = $(this)[0].id;
-                    addToSet(removing_id);
-                    $(this).removeClass('green');
-                    $(this).removeClass('red');
-                    $(this).addClass('default');
-                });
-            }
-            $(this).removeClass('default');
-            $(this).addClass('green');
-            addToSet(id);
             console.log(diffs)
         });
 
