@@ -24,8 +24,12 @@ class PoemsListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(PoemsListView, self).get_context_data(**kwargs)
-        for i in range(len(context['poems'])):
-            context['poems'][i].name = context['poems'][i].get_name()
+        poems_list = []
+        for poem in context['poems']:
+            if not self.request.user.has_perm('corpus.can_view_restricted_poems') and poem.is_restricted:
+                continue
+            poem.name = poem.get_name()
+            poems_list.append(poem)
         return context
 
 

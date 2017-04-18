@@ -43,11 +43,11 @@ INSTALLED_APPS = [
     'django.contrib.sitemaps',
     'robots',
     'haystack',
-    'accounts',
-    'poetry.apps.corpus',
-    'poetry',
     'reversion',
     'rest_framework',
+    'poetry',
+    'accounts',
+    'poetry.apps.corpus',
     'api'
 ]
 

@@ -1,7 +1,8 @@
 import jsonpickle
 
 from django.core.urlresolvers import reverse
-from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, DateTimeField
+from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, \
+    DateTimeField, BooleanField
 
 from rupo.main.markup import Markup as InternalMarkup
 
@@ -24,6 +25,7 @@ class Poem(Model):
     date_from = IntegerField("Дата написания - первый год", blank=True, null=True)
     date_to = IntegerField("Дата написания - второй год", blank=True, null=True)
     themes = ManyToManyField(Theme, verbose_name="Темы", related_name="poems", blank=True)
+    is_restricted = BooleanField("Стихи с ограниченным доступом", default=False)
 
     def __str__(self):
         return 'Стихотворение: ' + self.get_name() + ", " + str(self.author)
@@ -63,6 +65,9 @@ class Poem(Model):
     class Meta:
         verbose_name = "Стихотворение"
         verbose_name_plural = "Стихотворения"
+        permissions = (
+            ("can_view_restricted_poems", "Can view restricted poems"),
+        )
 
 
 class Markup(Model):

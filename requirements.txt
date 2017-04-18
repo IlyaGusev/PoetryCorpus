@@ -3,7 +3,7 @@ cryptography == 1.7.1
 scrapy == 1.2
 dicttoxml == 1.7.4
 datrie == 0.7.1
-Django == 1.10.4
+Django == 1.11
 django-reversion == 2.0.8
 django-haystack == 2.6.0
 django-robots == 2.0
