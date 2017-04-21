@@ -2,10 +2,12 @@ import datetime
 
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse_lazy, reverse
-from django.http import JsonResponse
-from django.views.generic import DetailView, ListView, FormView
+from django.http import JsonResponse, HttpResponseRedirect
+from django.views.generic import DetailView, ListView, FormView, View
 
+import os
 import poetry
+from poetry.settings import BASE_DIR
 from poetry.apps.corpus.forms import GeneratorForm, AccentsForm, RhymesForm, AnalysisForm
 from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem
 from poetry.apps.corpus.scripts.settings import MARKUPS_DUMP_XML_PATH, MARKOV_PICKLE, VOCAB_PICKLE
@@ -185,3 +187,23 @@ class AnalysisView(FormView):
         context['accented_text'] = process_markup(markup)
         context['additional'] = result
         return context
+
+
+class DownloadMarkupsView(View):
+    def get(self, request):
+        with open(os.path.join(BASE_DIR, "poetry", "static", "download", "ManualMarkups.json"),
+                  "w", encoding='utf-8') as f:
+            content = '['
+            poems = [poem for poem in Poem.objects.all() if poem.count_manual_markups() != 0]
+            markups = []
+            for poem in poems:
+                for markup in poem.markups.all():
+                    if markup.author != "Automatic":
+                        markups.append(markup)
+                        break
+            print(len(markups))
+            for markup in markups:
+                content += markup.text + ","
+            content = content[:-1] + ']'
+            f.write(content)
+        return HttpResponseRedirect("/static/download/ManualMarkups.json")
