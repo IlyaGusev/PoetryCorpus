@@ -3,7 +3,7 @@ import datetime
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.http import JsonResponse, HttpResponseRedirect
-from django.views.generic import DetailView, ListView, FormView, View
+from django.views.generic import DetailView, ListView, FormView, View, TemplateView
 
 import os
 import poetry
@@ -207,3 +207,38 @@ class DownloadMarkupsView(View):
             content = content[:-1] + ']'
             f.write(content)
         return HttpResponseRedirect("/static/download/ManualMarkups.json")
+
+
+def get_accents(markup):
+    accents = []
+    for line in markup.lines:
+        for word in line.words:
+            for syllable in word.syllables:
+                accents.append(syllable.accent != -1)
+    return accents
+
+
+def compare_markups(test_markup: Markup, standard_markup: Markup):
+    assert test_markup.text == standard_markup.text
+    test_accents = get_accents(test_markup)
+    standard_accents = get_accents(standard_markup)
+    assert len(test_accents) == len(standard_accents)
+    l = len(standard_accents)
+    hits = 0
+    for standard_accent, test_accent in zip(standard_accents, test_accents):
+        hits += 1 if standard_accent == test_accent else 0
+    accuracy = float(hits) / l
+    return accuracy
+
+
+class ComparisonView(TemplateView):
+    template_name = 'comparison.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ComparisonView, self).get_context_data(**kwargs)
+        test_id = self.request.GET["test_id"]
+        standard_id = self.request.GET["standard_id"]
+        test_markup = poetry.apps.corpus.models.Markup.objects.get(pk=test_id)
+        standard_markup = poetry.apps.corpus.models.Markup.objects.get(pk=standard_id)
+        context["accuracy"] = compare_markups(test_markup, standard_markup)
+        return context

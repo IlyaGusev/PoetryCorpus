@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^analysis/$', AnalysisView.as_view(), name="analysis"),
     url(r'^search/', include('haystack.urls', namespace="search")),
     url(r'^download_manual/$', DownloadMarkupsView.as_view(), name="download"),
+    url(r'^comparison/$', DownloadMarkupsView.as_view(), name="download"),
 ]
