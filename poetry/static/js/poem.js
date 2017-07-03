@@ -86,5 +86,22 @@ $(function() {
                 }
             });
         });
+
+        $(document).on('click','.compare',function(){
+            var standard_pk = $(".standard-markup-selector").val();
+            var test_pk = $(".test-markup-selector").val();
+            console.log(standard_pk, test_pk);
+            var href = "/corpus/comparison?test=" + test_pk + "&standard=" + standard_pk;
+            $.ajax({
+                type: 'GET',
+                url: window.location.href,
+                success: function(response) {
+                    window.location.replace(href)
+                },
+                error: function(request, status, error) {
+                    console.log(error)
+                }
+            });
+        });
     });
 });

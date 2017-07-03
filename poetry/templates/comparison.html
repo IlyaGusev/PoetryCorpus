@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block accents_active %} class="active" {% endblock %}
+{% block content %}
+<div class="page-header">
+    <h3>Сравнение разметок</h3>
+</div>
+<div class="row">
+    <div class="col-lg-8">
+        <p><b>Документы:</b>
+            {% for poem in poems %}
+                <p>-{{ poem.name }}</p>
+            {% endfor %}
+        </p>
+        <p><b>Тестовая разметка:</b> {{ test.author }}</p>
+        <p><b>Эталонная разметка:</b> {{ standard.author }}</p>
+        <p><b>Точность:</b> {{ accuracy }}</p>
+        <p><b>Средняя точность:</b> {{ avg }}</p>
+    </div>
+</div>
+{% endblock %}

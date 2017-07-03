@@ -39,14 +39,14 @@
         <p>{{rhyme}}</p>
     {% endfor %}
     <h4>Сравнение: </h4>
-    <select class="form-control standard-markup-selector">
-        {% for markup in poem.markups.all %}
-            <option value="{{markup.pk}}" class="markup">{{ markup.author}}</option>
-        {% endfor %}
-    </select>
     <select class="form-control test-markup-selector">
         {% for markup in poem.markups.all %}
-            <option value="{{markup.pk}}" class="markup">{{ markup.author}}</option>
+            <option value="{{markup.pk}}" class="test">{{ markup.author}}</option>
+        {% endfor %}
+    </select>
+    <select class="form-control standard-markup-selector">
+        {% for markup in poem.markups.all %}
+            <option value="{{markup.pk}}" class="standard">{{ markup.author}}</option>
         {% endfor %}
     </select>
     <div style="padding-top:10px;" class="text-center">
