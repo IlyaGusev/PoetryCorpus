@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 import os
 
 from poetry.settings import BASE_DIR
-from poetry.apps.corpus.models import Poem, Markup as ModelMarkup
+from poetry.apps.corpus.models import Poem, MarkupInstance as ModelMarkup
 from rupo.accents.classifier import MLAccentClassifier
 from rupo.accents.dict import AccentDict
 from rupo.main.phonetics import Phonetics

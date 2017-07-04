@@ -44,23 +44,23 @@ class Poem(Model):
         return len(self.text.rstrip().split("\n"))
 
     def count_automatic_errors(self):
-        for markup in self.markups.all():
+        for markup in self.markup_instances.all():
             if markup.author == "Automatic":
                 return markup.get_automatic_additional().get_metre_errors_count()
 
     def get_absolute_url(self):
-        if len(self.markups.all()) != 0:
-            return self.markups.all()[0].get_absolute_url()
+        if len(self.markup_instances.all()) != 0:
+            return self.markup_instances.all()[0].get_absolute_url()
         return reverse("corpus:poems")
 
     def get_automatic_markup(self):
-        for markup in self.markups.all():
+        for markup in self.markup_instances.all():
             if markup.author == "Automatic":
                 return markup
         return None
 
     def count_manual_markups(self):
-        return sum([int(markup.author != "Automatic") for markup in self.markups.all()])
+        return sum([int(markup.author != "Automatic") for markup in self.markup_instances.all()])
 
     class Meta:
         verbose_name = "Стихотворение"
@@ -71,13 +71,26 @@ class Poem(Model):
 
 
 class Markup(Model):
-    poem = ForeignKey(Poem, related_name="markups")
-    text = TextField("Слоговая разметка по ударениям", blank=True, default="")
-    author = CharField("Автор разметки", max_length=50, blank=False)
+    name = CharField("Имя разметки", max_length=50, blank=False)
     additional = TextField("Дополнительная ифнормация", blank=True)
 
     def __str__(self):
-        return 'Разметка' + str(self.poem.name) + " " + str(self.author)
+        return str(self.name)
+
+    class Meta:
+        verbose_name = "Разметка"
+        verbose_name_plural = "Разметки"
+
+
+class MarkupInstance(Model):
+    poem = ForeignKey(Poem, related_name="markup_instances")
+    text = TextField("Слоговая разметка по ударениям", blank=True, default="")
+    author = CharField("Автор разметки", max_length=50, blank=False)
+    additional = TextField("Дополнительная ифнормация", blank=True)
+    markup = ForeignKey(Markup, related_name="instances")
+
+    def __str__(self):
+        return 'Экземпляр разметки' + str(self.poem.name) + " " + str(self.author)
 
     def get_absolute_url(self):
         return reverse("corpus:markup", kwargs={"pk": self.pk})
@@ -95,8 +108,8 @@ class Markup(Model):
             return ""
 
     class Meta:
-        verbose_name = "Разметка"
-        verbose_name_plural = "Разметки"
+        verbose_name = "Экзепляр разметки"
+        verbose_name_plural = "Экзепляры разметки"
 
 
 class GenerationSettings(Model):

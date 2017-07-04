@@ -5,16 +5,24 @@
     <h3>Сравнение разметок</h3>
 </div>
 <div class="row">
-    <div class="col-lg-8">
-        <p><b>Документы:</b>
-            {% for poem in poems %}
-                <p>-{{ poem.name }}</p>
+    <div class="col-lg-12">
+        <table class="table table-hover">
+            <thead>
+                <th width="25%" class="text-center">Документ</th>
+                <th width="25%" class="text-center">Тестовая версия разметки</th>
+                <th width="25%" class="text-center">Эталонная версия разметки</th>
+                <th width="25%" class="text-center">Точность</th>
+            </thead>
+            {% for poem, test, standard, accuracy in comparisons %}
+            <tr>
+                <td>{{ poem.name }}</td>
+                <td class="text-center">{{ test.author }}</td>
+                <td class="text-center">{{ standard.author }}</td>
+                <td class="text-center">{{ accuracy|floatformat:3 }} </td>
+            </tr>
             {% endfor %}
-        </p>
-        <p><b>Тестовая разметка:</b> {{ test.author }}</p>
-        <p><b>Эталонная разметка:</b> {{ standard.author }}</p>
-        <p><b>Точность:</b> {{ accuracy }}</p>
-        <p><b>Средняя точность:</b> {{ avg }}</p>
+        </table>
+        <p><b>Средняя точность:</b> {{ avg|floatformat:3 }}</p>
     </div>
 </div>
 {% endblock %}
