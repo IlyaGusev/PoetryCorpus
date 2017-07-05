@@ -22,7 +22,9 @@
             </tr>
             {% endfor %}
         </table>
-        <p><b>Средняя точность:</b> {{ avg|floatformat:3 }}</p>
+        {% if comparisons|length > 1 %}
+            <p><b>Средняя точность:</b> {{ avg|floatformat:3 }}</p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
