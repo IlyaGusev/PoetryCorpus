@@ -10,7 +10,7 @@ from django.views.generic import DetailView, ListView, FormView, View, TemplateV
 import poetry
 from poetry.settings import BASE_DIR
 from poetry.apps.corpus.forms import GeneratorForm, AccentsForm, RhymesForm, AnalysisForm
-from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem
+from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem, MarkupInstance
 from poetry.apps.corpus.scripts.settings import MARKUPS_DUMP_XML_PATH, MARKOV_PICKLE, VOCAB_PICKLE
 
 from rupo.main.markup import Markup, Word, Line
@@ -104,10 +104,11 @@ class MarkupView(DetailView):
                         if syllable.text[i] in VOWELS:
                             syllable.accent = syllable.begin + i
 
-            m = poetry.apps.corpus.models.MarkupInstance()
+            m = MarkupInstance()
             m.text = markup.to_json()
             m.author = request.user.email
             m.poem = poem
+            m.markup = poetry.apps.corpus.models.Markup.objects.get(name="Manual")
             m.save()
             return JsonResponse({'url': reverse('corpus:markup', kwargs={'pk': m.pk}),},
                                 status=200)
@@ -236,6 +237,19 @@ def compare_markups(test_markup: Markup, standard_markup: Markup):
     return accuracy
 
 
+def get_comparison(poem, standard_pk, test_pk):
+    test_instance = None
+    standard_instance = None
+    for markup_instance in poem.markup_instances.all():
+        if markup_instance.markup.pk == standard_pk:
+            standard_instance = markup_instance
+        if markup_instance.markup.pk == test_pk:
+            test_instance = markup_instance
+    accuracy = compare_markups(test_instance.get_markup(), standard_instance.get_markup())
+    Comparison = namedtuple("Comparison", "poem test standard accuracy")
+    return Comparison(poem=poem, test=test_instance, standard=standard_instance, accuracy=accuracy)
+
+
 class ComparisonView(TemplateView):
     template_name = 'comparison.html'
 
@@ -244,49 +258,13 @@ class ComparisonView(TemplateView):
         test_pk = int(self.request.GET["test"])
         standard_pk = int(self.request.GET["standard"])
         document_pk = self.request.GET.get("document", None)
-        test_markup = poetry.apps.corpus.models.Markup.objects.get(pk=test_pk)
-        standard_markup = poetry.apps.corpus.models.Markup.objects.get(pk=standard_pk)
 
-        Comparison = namedtuple("Comparison", "poem test standard accuracy")
-        comparisons = []
         if document_pk is None:
-            poems = []
-            for poem in Poem.objects.filter(markup_instances__markup__in=[test_pk, standard_pk]):
-                has_standard = False
-                has_test = False
-                for markup_instance in poem.markup_instances.all():
-                    if markup_instance.markup.pk == standard_pk:
-                        has_standard = True
-                    if markup_instance.markup.pk == test_pk:
-                        has_test = True
-                print(has_standard, has_test)
-                if has_test and has_standard:
-                    poems.append(poem)
-            print(len(poems))
-            poems = list(set(poems))
-            for poem in poems:
-                test_instance = None
-                standard_instance = None
-                for markup_instance in poem.markup_instances.all():
-                    if markup_instance.markup.pk == standard_pk:
-                        standard_instance = markup_instance
-                    if markup_instance.markup.pk == test_pk:
-                        test_instance = markup_instance
-                accuracy = compare_markups(test_instance.get_markup(), standard_instance.get_markup())
-                comparisons.append(Comparison(poem=poem, test=test_instance,
-                                              standard=standard_instance, accuracy=accuracy))
+            standard_markup = poetry.apps.corpus.models.Markup.objects.get(pk=standard_pk)
+            poems = [instance.poem for instance in standard_markup.instances.filter(poem__markup_instances__markup=test_pk)]
+            comparisons = [get_comparison(poem, standard_pk, test_pk) for poem in poems]
         else:
-            poem = Poem.objects.get(pk=document_pk)
-            test_instance = None
-            standard_instance = None
-            for markup_instance in poem.markup_instances.all():
-                if markup_instance.markup.pk == standard_pk:
-                    standard_instance = markup_instance
-                if markup_instance.markup.pk == test_pk:
-                    test_instance = markup_instance
-            accuracy = compare_markups(test_instance.get_markup(), standard_instance.get_markup())
-            comparisons.append(Comparison(poem=poem, test=test_instance,
-                                          standard=standard_instance, accuracy=accuracy))
+            comparisons = [get_comparison(Poem.objects.get(pk=document_pk), standard_pk, test_pk)]
         context["comparisons"] = comparisons
         context["avg"] = sum([comparison.accuracy for comparison in comparisons])/len(comparisons)
         return context
