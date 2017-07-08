@@ -40,6 +40,33 @@ class Poem(Model):
             name = name[:i+1]
         return name
 
+    def get_name_short(self):
+        name = self.__clean_name(self.name)
+        if name == "":
+            name = self.__get_name_form_text()
+        return name[:64].replace(" ", "")
+
+    def __get_name_form_text(self):
+        name = ""
+        line_number = 0
+        while name == "":
+            name = self.text.strip().split("\n")[line_number]
+            print(line_number)
+            i = len(name) - 1
+            while i > 0 and not name[i].isalpha():
+                i -= 1
+            name = name[:i+1]
+            name = self.__clean_name(name)
+            line_number += 1
+        return name
+
+    def __clean_name(self, name):
+        new_name = ""
+        for ch in name:
+            if ch.isalpha() or ch.isalnum() or ch == " ":
+                new_name += ch
+        return new_name.strip()
+
     def count_lines(self):
         return len(self.text.rstrip().split("\n"))
 

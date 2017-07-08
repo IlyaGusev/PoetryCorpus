@@ -44,6 +44,11 @@ class Command(BaseCommand):
                             dest='db',
                             default=False,
                             help='Save to db?')
+        parser.add_argument('--author',
+                            action='store',
+                            dest='author',
+                            default="Automatic",
+                            help='Author')
 
     def handle(self, *args, **options):
         accents_dict = AccentDict()
@@ -58,6 +63,7 @@ class Command(BaseCommand):
         raw_path = str(options.get('raw')) if options.get('raw') is not None else None
 
         db = options.get('db')
+        author = options.get("author")
 
         xml_writer = None
         raw_writer = None
@@ -71,15 +77,22 @@ class Command(BaseCommand):
             raw_writer.open()
         i = 0
         for p in poems:
-            markup = Phonetics.process_text(p.text, accents_dict)
-            markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
-            if xml_writer is not None:
-                xml_writer.write_markup(markup)
-            if raw_writer is not None:
-                raw_writer.write_markup(markup)
-            if db:
-                ModelMarkup.objects.create(poem=p, text=markup.to_json(),
-                                           author="Automatic", additional=result.to_json())
+            if author == "Automatic":
+                markup = Phonetics.process_text(p.text, accents_dict)
+                markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
+                if xml_writer is not None:
+                    xml_writer.write_markup(markup)
+                if raw_writer is not None:
+                    raw_writer.write_markup(markup)
+                if db:
+                    ModelMarkup.objects.create(poem=p, text=markup.to_json(),
+                                               author="Automatic", additional=result.to_json())
+            else:
+                markup = p.markup_instances.filter(author=author)[0]
+                if xml_writer is not None:
+                    xml_writer.write_markup(markup.get_markup())
+                if raw_writer is not None:
+                    raw_writer.write_markup(markup.get_markup())
             i += 1
             print(i)
         if raw_writer is not None:

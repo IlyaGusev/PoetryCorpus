@@ -2,7 +2,6 @@ $(function() {
     $(document).ready(function(){
         VOWELS = "aeiouAEIOUаоэиуыеёюяАОЭИУЫЕЁЮЯ";
         var diffs = {};
-        var yuo_fixes = {}
 
         addToSet = function(id) {
             if (!diffs[id]) {
@@ -58,8 +57,8 @@ $(function() {
 
 
         $(".markup-selector").change(function() {
-            $( "select option:selected" ).each(function() {
-                var id= $(this).val();
+            $( ".markup-selector option:selected" ).each(function() {
+                var id = $(this).val();
                 var href = "";
                 if( id != 0 ) {
                     href = "/corpus/markups/" + id;
@@ -88,8 +87,8 @@ $(function() {
         });
 
         $(document).on('click','.compare',function(){
-            var standard_pk = $(".standard-markup-selector").val();
-            var test_pk = $(".test-markup-selector").val();
+            var standard_pk = $(".standard").val();
+            var test_pk = $(".test").val();
             console.log(standard_pk, test_pk);
             var href = "/corpus/comparison?test=" + test_pk + "&standard=" + standard_pk + "&document=" + $("#poem_pk").text();
             $.ajax({

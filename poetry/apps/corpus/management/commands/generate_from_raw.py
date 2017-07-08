@@ -35,7 +35,8 @@ class Command(BaseCommand):
                         name = ""
                         for l in t.split("\\n"):
                             if l != '':
-                                name = l
+                                l = l.replace("/", "").replace(":", "")
+                                name = l[:50]
                                 break
                         if name == "":
                             continue
