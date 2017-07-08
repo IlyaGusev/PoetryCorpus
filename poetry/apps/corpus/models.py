@@ -87,7 +87,7 @@ class Poem(Model):
         return None
 
     def count_manual_markups(self):
-        return sum([int(markup.author != "Automatic") for markup in self.markup_instances.all()])
+        return sum([int(markup_instance.markup.name == "Manual") for markup_instance in self.markup_instances.all()])
 
     class Meta:
         verbose_name = "Стихотворение"

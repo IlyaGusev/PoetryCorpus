@@ -207,7 +207,6 @@ class DownloadMarkupsView(View):
                     if markup.author != "Automatic":
                         markups.append(markup)
                         break
-            print(len(markups))
             for markup in markups:
                 content += markup.text + ","
             content = content[:-1] + ']'
