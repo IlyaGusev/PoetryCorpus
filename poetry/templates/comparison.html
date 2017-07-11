@@ -16,8 +16,8 @@
             {% for poem, test, standard, accuracy in comparisons %}
             <tr>
                 <td>{{ poem.name }}</td>
-                <td class="text-center">{{ test.author }}</td>
-                <td class="text-center">{{ standard.author }}</td>
+                <td class="text-center"><a href="{% url 'corpus:markup' pk=test.pk %}">{{ test.author }}</a></td>
+                <td class="text-center"><a href="{% url 'corpus:markup' pk=standard.pk %}">{{ standard.author }}</a></td>
                 <td class="text-center">{{ accuracy|floatformat:3 }} </td>
             </tr>
             {% endfor %}

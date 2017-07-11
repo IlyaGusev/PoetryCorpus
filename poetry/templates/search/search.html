@@ -31,7 +31,7 @@
                 {% for result in page.object_list %}
                 <tr>
                     <td>{{ result.object.author }}</td>
-                    <td><a href="{% url 'corpus:markup' pk=result.object.markups.all.0.pk %}">{{ result.object.get_name }}</a></td>
+                    <td><a href="{% url 'corpus:markup' pk=result.object.markup_instances.all.0.pk %}">{{ result.object.get_name }}</a></td>
                 </tr>
                 {% endfor %}
             </table>
