@@ -1,7 +1,7 @@
 from django.contrib import admin
 from reversion.admin import VersionAdmin
 
-from poetry.apps.corpus.models import Poem, Theme, MarkupInstance, AutomaticPoem, GenerationSettings, Markup
+from poetry.apps.corpus.models import Poem, Theme, MarkupInstance, Markup
 
 
 class PoemInline(admin.StackedInline):
@@ -22,16 +22,6 @@ class ThemeAdmin(admin.ModelAdmin):
 @admin.register(MarkupInstance)
 class MarkupInstanceAdmin(VersionAdmin):
     model = MarkupInstance
-
-
-@admin.register(AutomaticPoem)
-class AutomaticPoemAdmin(VersionAdmin):
-    model = AutomaticPoem
-
-
-@admin.register(GenerationSettings)
-class GenerationSettingsAdmin(VersionAdmin):
-    model = GenerationSettings
 
 
 @admin.register(Markup)

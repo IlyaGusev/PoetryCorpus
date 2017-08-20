@@ -5,8 +5,8 @@
 import os
 from poetry.apps.corpus.scripts.settings import MARKUPS_DUMP_RAW_PATH
 
-from rupo.files.writer import Writer, FileTypeEnum
-from rupo.api import get_improved_markup
+from rupo.files.writer import Writer, FileType
+from rupo.api import Engine
 
 
 def get_paths(path: str, ext: str):
@@ -28,12 +28,16 @@ def get_paths(path: str, ext: str):
                 return get_paths(folder, ext)
 
 
-def run():
-    raw_writer = Writer(FileTypeEnum.RAW, MARKUPS_DUMP_RAW_PATH)
+def run(stress_model_path, g2p_model_path, grapheme_set, g2p_dict_path, aligner_dump_path, raw_stress_dict_path,
+        stress_trie_path, zalyzniak_dict, ru_wiki_dict, cmu_dict):
+    raw_writer = Writer(FileType.RAW, MARKUPS_DUMP_RAW_PATH)
     raw_writer.open()
     i = 0
     path = "/media/data/stihi_ru_clean"
     paths = get_paths(path, "")
+    engine = Engine(language="ru")
+    engine.load(stress_model_path, g2p_model_path, grapheme_set, g2p_dict_path, aligner_dump_path, raw_stress_dict_path,
+        stress_trie_path, zalyzniak_dict, ru_wiki_dict, cmu_dict)
     for filename in paths:
         with open(filename, "r", encoding="utf-8") as file:
             text = ""
@@ -57,7 +61,7 @@ def run():
                             clean_text += line.strip() + "\n"
                         if not skip:
                             print(clean_text.split("\n")[:2])
-                            markup, result = get_improved_markup(clean_text)
+                            markup, result = engine.get_improved_markup(clean_text)
                             raw_writer.write_markup(markup)
                         else:
                             print("Skipped")
@@ -69,4 +73,5 @@ def run():
             except Exception as e:
                 pass
     raw_writer.close()
-run()
+if __name__ == "__main__":
+    pass

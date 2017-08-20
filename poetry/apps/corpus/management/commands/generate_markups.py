@@ -7,11 +7,10 @@ import os
 
 from poetry.settings import BASE_DIR
 from poetry.apps.corpus.models import Poem, MarkupInstance as ModelMarkup
-from rupo.accents.classifier import MLAccentClassifier
-from rupo.accents.dict import AccentDict
-from rupo.main.phonetics import Phonetics
 from rupo.metre.metre_classifier import MetreClassifier
-from rupo.files.writer import Writer, FileTypeEnum
+from rupo.files.writer import Writer, FileType
+from rupo.main.markup import Markup
+from rupo.api import Engine
 
 
 class Command(BaseCommand):
@@ -51,9 +50,8 @@ class Command(BaseCommand):
                             help='Author')
 
     def handle(self, *args, **options):
-        accents_dict = AccentDict()
-        accents_classifier = MLAccentClassifier(accents_dict)
-
+        engine = Engine(language="ru")
+        engine.load()
         poems = Poem.objects.all()
         begin = int(options.get('from'))
         end = int(options.get('to')) if options.get('to') is not None else len(poems)
@@ -69,17 +67,17 @@ class Command(BaseCommand):
         raw_writer = None
         if xml_path is not None:
             xml_path = os.path.join(BASE_DIR, xml_path)
-            xml_writer = Writer(FileTypeEnum.XML, xml_path)
+            xml_writer = Writer(FileType.XML, xml_path)
             xml_writer.open()
         if raw_path is not None:
             raw_path = os.path.join(BASE_DIR, raw_path)
-            raw_writer = Writer(FileTypeEnum.RAW, raw_path)
+            raw_writer = Writer(FileType.RAW, raw_path)
             raw_writer.open()
         i = 0
         for p in poems:
             if author == "Automatic":
-                markup = Phonetics.process_text(p.text, accents_dict)
-                markup, result = MetreClassifier.improve_markup(markup, accents_classifier)
+                markup = Markup.process_text(p.text, engine.get_stress_predictor())
+                markup, result = MetreClassifier.improve_markup(markup)
                 if xml_writer is not None:
                     xml_writer.write_markup(markup)
                 if raw_writer is not None:

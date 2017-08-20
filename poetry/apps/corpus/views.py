@@ -1,22 +1,15 @@
-import datetime
-import os
 from collections import namedtuple
 
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse_lazy, reverse
-from django.http import JsonResponse, HttpResponseRedirect
-from django.views.generic import DetailView, ListView, FormView, View, TemplateView
+from django.core.urlresolvers import reverse
+from django.http import JsonResponse
+from django.views.generic import DetailView, ListView, TemplateView
 
 import poetry
-from poetry.settings import BASE_DIR
-from poetry.apps.corpus.forms import GeneratorForm, AccentsForm, RhymesForm, AnalysisForm
-from poetry.apps.corpus.models import Poem, GenerationSettings, AutomaticPoem, MarkupInstance
-from poetry.apps.corpus.scripts.settings import MARKUPS_DUMP_XML_PATH, MARKOV_PICKLE, VOCAB_PICKLE
+from poetry.apps.corpus.models import Poem, MarkupInstance
 
-from rupo.main.markup import Markup, Word, Line
-from rupo.main.phonetics import Phonetics
+from rupo.main.markup import Markup
 from rupo.util.preprocess import VOWELS
-from rupo.api import get_accent, generate_poem_by_line, generate_poem, get_improved_markup, get_word_rhymes
 
 
 class PoemsListView(ListView):
@@ -114,104 +107,6 @@ class MarkupView(DetailView):
                                 status=200)
         else:
             raise PermissionDenied
-
-
-class GeneratorView(FormView):
-    template_name = "generator.html"
-    success_url = reverse_lazy('corpus:generator')
-    form_class = GeneratorForm
-
-    def get_context_data(self, **kwargs):
-        context = super(GeneratorView, self).get_context_data(**kwargs)
-        settings, created = GenerationSettings.objects.get_or_create(
-            metre_schema=self.request.GET.get('metre_schema', "-+"),
-            syllables_count=int(self.request.GET.get('syllables_count', 8)),
-            rhyme_schema=self.request.GET.get('rhyme_schema', "aabb"),
-            line=self.request.GET.get('line', ""))
-        try:
-            if settings.line != "":
-                context['generated'] = \
-                    generate_poem_by_line(MARKUPS_DUMP_XML_PATH, MARKOV_PICKLE, VOCAB_PICKLE,
-                                          settings.line,
-                                          settings.rhyme_schema)
-            else:
-                context['generated'] = generate_poem(MARKUPS_DUMP_XML_PATH, MARKOV_PICKLE, VOCAB_PICKLE,
-                                                     settings.metre_schema,
-                                                     settings.rhyme_schema,
-                                                     settings.syllables_count)
-        except RuntimeError as e:
-            context['generated'] = e
-        AutomaticPoem.objects.create(text=context['generated'], date=datetime.datetime.now(), settings=settings)
-        return context
-
-
-class AccentsView(FormView):
-    template_name = "accents.html"
-    success_url = reverse_lazy("corpus:accents")
-    form_class = AccentsForm
-
-    def get_context_data(self, **kwargs):
-        context = super(AccentsView, self).get_context_data(**kwargs)
-        word = self.request.GET.get('word', "")
-        if word != "":
-            accent = get_accent(word)
-            syllables = Phonetics.get_word_syllables(word)
-            for syllable in syllables:
-                if syllable.begin <= accent < syllable.end:
-                    syllable.accent = accent
-            markup_word = Word(0, len(word)-1, word, syllables)
-            markup_line = Line(0, len(word)-1, word, [markup_word])
-            markup = Markup(word, [markup_line])
-            context['word_markup'] = process_markup(markup)
-        return context
-
-
-class RhymesView(FormView):
-    template_name = "rhymes.html"
-    success_url = reverse_lazy("corpus:rhymes")
-    form_class = RhymesForm
-
-    def get_context_data(self, **kwargs):
-        context = super(RhymesView, self).get_context_data(**kwargs)
-        word = self.request.GET.get('word', "")
-        if word != "":
-            context['rhymes'] = [w for w in get_word_rhymes(word, VOCAB_PICKLE, MARKUPS_DUMP_XML_PATH)]
-        return context
-
-
-class AnalysisView(FormView):
-    template_name = "analysis.html"
-    success_url = reverse_lazy("corpus:analysis")
-    form_class = AnalysisForm
-
-    def get_context_data(self, **kwargs):
-        context = super(AnalysisView, self).get_context_data(**kwargs)
-        text = self.request.GET.get('text', "")
-        if text == "":
-            return context
-        markup, result = get_improved_markup(text)
-        context['accented_text'] = process_markup(markup)
-        context['additional'] = result
-        return context
-
-
-class DownloadMarkupsView(View):
-    def get(self, request):
-        with open(os.path.join(BASE_DIR, "poetry", "static", "download", "ManualMarkups.json"),
-                  "w", encoding='utf-8') as f:
-            content = '['
-            poems = [poem for poem in Poem.objects.all() if poem.count_manual_markups() != 0]
-            markups = []
-            for poem in poems:
-                for markup in poem.markups.all():
-                    if markup.author != "Automatic":
-                        markups.append(markup)
-                        break
-            for markup in markups:
-                content += markup.text + ","
-            content = content[:-1] + ']'
-            f.write(content)
-        return HttpResponseRedirect("/static/download/ManualMarkups.json")
 
 
 def get_accents(markup: Markup):

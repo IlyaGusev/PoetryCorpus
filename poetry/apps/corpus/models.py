@@ -1,10 +1,10 @@
 import jsonpickle
 
 from django.core.urlresolvers import reverse
-from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, \
-    DateTimeField, BooleanField
+from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, BooleanField
 
 from rupo.main.markup import Markup as InternalMarkup
+from rupo.metre.metre_classifier import StressCorrection, ClassificationResult
 
 
 class Theme(Model):
@@ -130,38 +130,21 @@ class MarkupInstance(Model):
     def get_automatic_additional(self):
         if self.additional:
             clf = jsonpickle.decode(self.additional)
+            self.__compatibility_stress_correction(clf.corrections)
+            self.__compatibility_stress_correction(clf.resolutions)
+            self.__compatibility_stress_correction(clf.additions)
             return clf
         else:
             return ""
 
+    def __compatibility_stress_correction(self, collection):
+        for key, value in collection.items():
+            new_value = []
+            for info in value:
+                new_value.append(StressCorrection(info['line_number'], info["word_number"],
+                                                  info["syllable_number"], info["word_text"], info["accent"]))
+            collection[key] = new_value
+
     class Meta:
         verbose_name = "Экзепляр разметки"
         verbose_name_plural = "Экзепляры разметки"
-
-
-class GenerationSettings(Model):
-    metre_schema = TextField("Схема метра", blank=False, default="+-")
-    syllables_count = IntegerField("Количество слогов", blank=False, default=8)
-    rhyme_schema = TextField("Схема рифмовки", blank=False, default="aabb")
-    line = TextField("Первая строчка", blank=True, default="")
-
-    def __str__(self):
-        return 'Настройки генерации: ' + str(self.metre_schema) + " " + \
-               str(self.syllables_count) + " " + str(self.rhyme_schema)
-
-    class Meta:
-        verbose_name = "Набор настроек генерации"
-        verbose_name_plural = "Наборы настроек генерации"
-
-
-class AutomaticPoem(Model):
-    text = TextField("Текст", blank=False)
-    date = DateTimeField("Дата и время генерации")
-    settings = ForeignKey(GenerationSettings, related_name="poems", verbose_name="Настройки")
-
-    def __str__(self):
-        return 'Сгенерированное стихотворение ' + str(self.date)
-
-    class Meta:
-        verbose_name = "Сгенерированное стихотворение"
-        verbose_name_plural = "Сгенерированные стихотворения"
