@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.generic import DetailView, ListView, TemplateView
 
 import poetry
-from poetry.apps.corpus.models import Poem, MarkupInstance
+from poetry.apps.corpus.models import Poem, Markup
 
 from rupo.main.markup import Markup
 from rupo.util.preprocess import VOWELS
@@ -44,11 +44,11 @@ def process_markup(markup):
                 output[-1].append({'word': {'text': word.text}, 'word_number': w})
             else:
                 output[-1].append({'word': {'text': word.text, 'syllables': []}, 'word_number': w})
-                accents_count = sum([1 for syllable in word.syllables if syllable.accent != -1])
+                accents_count = sum([1 for syllable in word.syllables if syllable.stress != -1])
                 for s in range(len(word.syllables)):
                     syllable = word.syllables[s]
                     output[-1][-1]['word']['syllables'].append(
-                        {'text': syllable.text, 'accent': syllable.accent,
+                        {'text': syllable.text, 'stress': syllable.stress,
                          'omography': accents_count > 1, 'no_accent': accents_count == 0})
             prev = word.end
         output[-1].append({'word': {'text': text[prev:line.end]}, 'word_number': -1})
@@ -57,7 +57,7 @@ def process_markup(markup):
 
 
 class MarkupView(DetailView):
-    model = poetry.apps.corpus.models.MarkupInstance
+    model = poetry.apps.corpus.models.Markup
     template_name = 'markup.html'
     context_object_name = 'markup'
 
@@ -73,7 +73,7 @@ class MarkupView(DetailView):
         context['additional'] = markup_instance.get_automatic_additional()
         markups = set()
         for markup_instance in markup_instance.poem.markup_instances.all():
-            markups.add(markup_instance.markup)
+            markups.add(markup_instance.markup_version)
         context['markups'] = list(markups)
         return context
 
@@ -90,18 +90,18 @@ class MarkupView(DetailView):
                 w = int(diff.split('-')[1])
                 s = int(diff.split('-')[2])
                 syllable = markup.lines[l].words[w].syllables[s]
-                if syllable.accent != -1:
-                    syllable.accent = -1
+                if syllable.stess != -1:
+                    syllable.stress = -1
                 else:
                     for i in range(len(syllable.text)):
                         if syllable.text[i] in VOWELS:
-                            syllable.accent = syllable.begin + i
+                            syllable.stress = syllable.begin + i
 
-            m = MarkupInstance()
+            m = Markup()
             m.text = markup.to_json()
             m.author = request.user.email
             m.poem = poem
-            m.markup = poetry.apps.corpus.models.Markup.objects.get(name="Manual")
+            m.markup_version = poetry.apps.corpus.models.MarkupVersion.objects.get(name="Manual")
             m.save()
             return JsonResponse({'url': reverse('corpus:markup', kwargs={'pk': m.pk}),},
                                 status=200)
@@ -114,7 +114,7 @@ def get_accents(markup: Markup):
     for line in markup.lines:
         for word in line.words:
             for syllable in word.syllables:
-                accents.append(syllable.accent != -1)
+                accents.append(syllable.stress != -1)
     return accents
 
 
@@ -154,7 +154,7 @@ class ComparisonView(TemplateView):
         document_pk = self.request.GET.get("document", None)
 
         if document_pk is None:
-            standard_markup = poetry.apps.corpus.models.Markup.objects.get(pk=standard_pk)
+            standard_markup = poetry.apps.corpus.models.MarkupVersion.objects.get(pk=standard_pk)
             poems = [instance.poem for instance in standard_markup.instances.filter(poem__markup_instances__markup=test_pk)]
             comparisons = [get_comparison(poem, standard_pk, test_pk) for poem in poems]
         else:

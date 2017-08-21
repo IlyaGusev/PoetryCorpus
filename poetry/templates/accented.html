@@ -7,7 +7,7 @@
             {% for syllable in word.word.syllables %}
                 <a id="{{forloop.parentloop.parentloop.counter0}}-{{ word.word_number }}-{{ forloop.counter0 }}"
                     class="syllable
-                    {% if syllable.accent != -1 %}
+                    {% if syllable.stress != -1 %}
                         {% if syllable.omography %}
                         bck red
                         {% else %}

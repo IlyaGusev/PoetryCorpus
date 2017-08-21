@@ -51,7 +51,6 @@ class Poem(Model):
         line_number = 0
         while name == "":
             name = self.text.strip().split("\n")[line_number]
-            print(line_number)
             i = len(name) - 1
             while i > 0 and not name[i].isalpha():
                 i -= 1
@@ -87,7 +86,7 @@ class Poem(Model):
         return None
 
     def count_manual_markups(self):
-        return sum([int(markup_instance.markup.name == "Manual") for markup_instance in self.markup_instances.all()])
+        return sum([int(markup_instance.markup_version.name == "Manual") for markup_instance in self.markup_instances.all()])
 
     class Meta:
         verbose_name = "Стихотворение"
@@ -97,27 +96,27 @@ class Poem(Model):
         )
 
 
-class Markup(Model):
-    name = CharField("Имя разметки", max_length=50, blank=False)
+class MarkupVersion(Model):
+    name = CharField("Имя версии разметки", max_length=50, blank=False)
     additional = TextField("Дополнительная ифнормация", blank=True)
 
     def __str__(self):
         return str(self.name)
 
     class Meta:
-        verbose_name = "Разметка"
-        verbose_name_plural = "Разметки"
+        verbose_name = "Версия разметки"
+        verbose_name_plural = "Версии разметки"
 
 
-class MarkupInstance(Model):
+class Markup(Model):
     poem = ForeignKey(Poem, related_name="markup_instances")
     text = TextField("Слоговая разметка по ударениям", blank=True, default="")
     author = CharField("Автор разметки", max_length=50, blank=False)
     additional = TextField("Дополнительная ифнормация", blank=True)
-    markup = ForeignKey(Markup, related_name="instances")
+    markup_version = ForeignKey(MarkupVersion, related_name="instances")
 
     def __str__(self):
-        return 'Экземпляр разметки' + str(self.poem.name) + " " + str(self.author)
+        return 'Разметка' + str(self.poem.name) + " " + str(self.markup_version) + " " + str(self.author)
 
     def get_absolute_url(self):
         return reverse("corpus:markup", kwargs={"pk": self.pk})
@@ -130,9 +129,13 @@ class MarkupInstance(Model):
     def get_automatic_additional(self):
         if self.additional:
             clf = jsonpickle.decode(self.additional)
-            self.__compatibility_stress_correction(clf.corrections)
-            self.__compatibility_stress_correction(clf.resolutions)
-            self.__compatibility_stress_correction(clf.additions)
+            a = list([a for l in clf.corrections.values() for a in l]) + \
+                list([a for l in clf.additions.values() for a in l]) + \
+                list([a for l in clf.resolutions.values() for a in l])
+            if len(a) != 0 and type(a[0]) is not StressCorrection:
+                self.__compatibility_stress_correction(clf.corrections)
+                self.__compatibility_stress_correction(clf.resolutions)
+                self.__compatibility_stress_correction(clf.additions)
             return clf
         else:
             return ""
