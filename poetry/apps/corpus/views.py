@@ -122,8 +122,7 @@ def compare_markups(test_markup: Markup, standard_markup: Markup):
     assert test_markup.text == standard_markup.text
     test_accents = get_accents(test_markup)
     standard_accents = get_accents(standard_markup)
-    assert len(test_accents) == len(standard_accents)
-    l = len(standard_accents)
+    l = min(len(standard_accents), len(test_accents))
     hits = 0
     for standard_accent, test_accent in zip(standard_accents, test_accents):
         hits += 1 if standard_accent == test_accent else 0
@@ -135,9 +134,9 @@ def get_comparison(poem, standard_pk, test_pk):
     test_instance = None
     standard_instance = None
     for markup_instance in poem.markup_instances.all():
-        if markup_instance.markup.pk == standard_pk:
+        if markup_instance.markup_version.pk == standard_pk:
             standard_instance = markup_instance
-        if markup_instance.markup.pk == test_pk:
+        if markup_instance.markup_version.pk == test_pk:
             test_instance = markup_instance
     accuracy = compare_markups(test_instance.get_markup(), standard_instance.get_markup())
     Comparison = namedtuple("Comparison", "poem test standard accuracy")
@@ -155,7 +154,7 @@ class ComparisonView(TemplateView):
 
         if document_pk is None:
             standard_markup = poetry.apps.corpus.models.MarkupVersion.objects.get(pk=standard_pk)
-            poems = [instance.poem for instance in standard_markup.instances.filter(poem__markup_instances__markup=test_pk)]
+            poems = [instance.poem for instance in standard_markup.instances.filter(poem__markup_instances__markup_version=test_pk)]
             comparisons = [get_comparison(poem, standard_pk, test_pk) for poem in poems]
         else:
             comparisons = [get_comparison(Poem.objects.get(pk=document_pk), standard_pk, test_pk)]

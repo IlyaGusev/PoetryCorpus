@@ -12,9 +12,7 @@ from rupo.files.writer import Writer, FileType
 from rupo.main.markup import Markup
 from rupo.api import Engine
 
-STRESS_MODEL = "/home/yallen/Документы/Python/rupo/rupo/data/stress_models/stress_ru_word30_LSTM256_dropout0.4_acc99_wer3.h5"
-G2P_MODEL = "/home/yallen/Документы/Python/rupo/rupo/data/g2p_models/g2p_ru_maxlen40_BLSTM256_BLSTM256_dropout0.2_acc992_wer140.h5"
-ALIGNER_PATH = "/home/yallen/Документы/Python/rupo/rupo/data/g2p_models/ru_aligner.pickle"
+STRESS_MODEL = "/home/yallen/Документы/Python/rupo/rupo/data/stress_models/stress_ru_LSTM64_dropout0.2_acc99_wer8.h5"
 STRESS_TRIE = "/home/yallen/Документы/Python/rupo/rupo/data/dict/ru_grapheme_stress.trie"
 
 
@@ -81,8 +79,6 @@ class Command(BaseCommand):
             raw_writer.open()
         i = 0
         stress_predictor = engine.get_stress_predictor(stress_model_path=STRESS_MODEL,
-                                                       g2p_model_path=G2P_MODEL,
-                                                       aligner_dump_path=ALIGNER_PATH,
                                                        stress_trie_path=STRESS_TRIE)
         for p in poems:
             if "Automatic" in author:
