@@ -13,7 +13,6 @@ $(function() {
 
         $(document).on('click','.syllable',function(){
             var id = this.id;
-            var line_id = id.split('-')[0];
             var word_id = id.split('-')[0] + '-' + id.split('-')[1];
             var text = $(this).text();
             var accented = $(this).hasClass('green') && $(this).hasClass('bck');
@@ -89,8 +88,42 @@ $(function() {
         $(document).on('click','.compare',function(){
             var standard_pk = $(".standard").val();
             var test_pk = $(".test").val();
-            console.log(standard_pk, test_pk);
             var href = "/corpus/comparison?test=" + test_pk + "&standard=" + standard_pk + "&document=" + $("#poem_pk").text();
+            $.ajax({
+                type: 'GET',
+                url: window.location.href,
+                success: function(response) {
+                    window.location.replace(href)
+                },
+                error: function(request, status, error) {
+                    console.log(error)
+                }
+            });
+        });
+
+        var selected_version = [];
+        $('#versions').on('click','.version-select',function(){
+            var id = $(this)[0].id;
+            if ($(this)[0].checked) {
+                selected_version.push(id);
+            } else {
+                selected_version.splice(selected_version.indexOf(id), 1);
+            }
+            var compareButton = $('.compare-versions');
+            if( selected_version.length == 2 ) {
+                compareButton.removeClass("disabled")
+            } else if( !compareButton.hasClass("disabled") ){
+                compareButton.addClass("disabled")
+            }
+        });
+
+        $(document).on('click', '.compare-versions', function(){
+            if( $(this).hasClass("disabled") ) {
+                return;
+            }
+            var standard_pk = selected_version[0];
+            var test_pk = selected_version[1];
+            var href = "/corpus/comparison?test=" + test_pk + "&standard=" + standard_pk;
             $.ajax({
                 type: 'GET',
                 url: window.location.href,

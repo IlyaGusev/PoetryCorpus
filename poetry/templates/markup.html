@@ -10,7 +10,7 @@
 </div>
 <div class="col-lg-6">
     <select class="form-control markup-selector">
-        {% for markup in poem.markup_instances.all %}
+        {% for markup in poem.markups.all %}
             <option value="{{markup.pk}}" class="markup">{{ markup.author}}</option>
         {% endfor %}
     </select>
@@ -39,11 +39,13 @@
         <p>{{rhyme}}</p>
     {% endfor %}
     <h4>Сравнение: </h4>
+    Тестовая:
     <select class="form-control test">
         {% for markup in markups %}
             <option value="{{markup.pk}}" class="test">{{ markup.name}}</option>
         {% endfor %}
     </select>
+    Эталонная
     <select class="form-control standard">
         {% for markup in markups %}
             <option value="{{markup.pk}}" class="standard">{{ markup.name}}</option>

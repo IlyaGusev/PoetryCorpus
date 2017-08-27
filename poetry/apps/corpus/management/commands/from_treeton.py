@@ -16,9 +16,9 @@ class Command(BaseCommand):
             with open(filename, "r", encoding="utf-8") as f:
                 lines = f.readlines()[1:]
                 stress_lines = [re.sub(r"[^SUsu]+", "", line) for line in lines]
-                markup_instances = poem.markup_instances.all()
-                if len(markup_instances) != 0:
-                    markup = poem.markup_instances.all()[0].get_markup()
+                markups = poem.markups.all()
+                if len(markups) != 0:
+                    markup = poem.markups.all()[0].get_markup()
                     assert len(markup.lines) == len(stress_lines)
                     for line_number, line in enumerate(markup.lines):
                         syllable_count = 0

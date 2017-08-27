@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block custom_head %}
+<script src="{% static 'js/ajax.csrf.js' %}"></script>
+<script src="{% static 'js/poem.js' %}"></script>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h3>Версии разметок</h3>
+</div>
+<div class="row">
+    {% include "pagination.html" %}
+    <div class="col-large-12">
+        <div class="table-responsive col-md-12">
+            <table class="table table-hover" id="versions">
+                <thead>
+                    <th width="5%"></th>
+                    <th width="45%">Название</th>
+                    <th width="25%" class="text-center">Количество разметок</th>
+                    <th width="25%" class="text-center">Ручная?</th>
+                </thead>
+                {% for version in versions %}
+                <tr>
+                    <td><input type="checkbox" class="version-select" id="{{ version.pk }}"></td>
+                    <td>{{ version.name }}</td>
+                    <td class="text-center"> {{ version.count_markups }}</td>
+                    <td class="text-center"> {% if version.is_manual %}
+                        <i class="fa fa-check green" aria-hidden="true"></i>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <button class="btn btn-default compare-versions disabled">Сравнить</button>
+    </div>
+    {% include "pagination.html" %}
+</div>
+{% endblock %}

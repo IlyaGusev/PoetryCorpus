@@ -4,18 +4,18 @@ from django.core.urlresolvers import reverse
 from django.db.models import Model, CharField, IntegerField, TextField, ManyToManyField, ForeignKey, BooleanField
 
 from rupo.main.markup import Markup as InternalMarkup
-from rupo.metre.metre_classifier import StressCorrection, ClassificationResult
+from rupo.metre.metre_classifier import StressCorrection
 
 
 class Theme(Model):
     theme = CharField("Тема", max_length=50, blank=False)
 
-    def __str__(self):
-        return 'Тема: ' + str(self.theme)
-
     class Meta:
         verbose_name = "Тема"
         verbose_name_plural = "Темы"
+
+    def __str__(self):
+        return 'Тема: ' + str(self.theme)
 
 
 class Poem(Model):
@@ -26,6 +26,13 @@ class Poem(Model):
     date_to = IntegerField("Дата написания - второй год", blank=True, null=True)
     themes = ManyToManyField(Theme, verbose_name="Темы", related_name="poems", blank=True)
     is_restricted = BooleanField("Стихи с ограниченным доступом", default=False)
+
+    class Meta:
+        verbose_name = "Стихотворение"
+        verbose_name_plural = "Стихотворения"
+        permissions = (
+            ("can_view_restricted_poems", "Can view restricted poems"),
+        )
 
     def __str__(self):
         return 'Стихотворение: ' + self.get_name() + ", " + str(self.author)
@@ -70,50 +77,51 @@ class Poem(Model):
         return len(self.text.rstrip().split("\n"))
 
     def count_automatic_errors(self):
-        for markup in self.markup_instances.all():
-            if markup.author == "Automatic":
+        for markup in self.markups.all():
+            if "Automatic" in markup.author:
                 return markup.get_automatic_additional().get_metre_errors_count()
 
     def get_absolute_url(self):
-        if len(self.markup_instances.all()) != 0:
-            return self.markup_instances.all()[0].get_absolute_url()
+        if len(self.markups.all()) != 0:
+            return self.markups.all()[0].get_absolute_url()
         return reverse("corpus:poems")
 
     def get_automatic_markup(self):
-        for markup in self.markup_instances.all():
-            if markup.author == "Automatic":
+        for markup in self.markups.all():
+            if "Automatic" in markup.author:
                 return markup
         return None
 
     def count_manual_markups(self):
-        return sum([int(markup_instance.markup_version.name == "Manual") for markup_instance in self.markup_instances.all()])
-
-    class Meta:
-        verbose_name = "Стихотворение"
-        verbose_name_plural = "Стихотворения"
-        permissions = (
-            ("can_view_restricted_poems", "Can view restricted poems"),
-        )
+        return sum([int(markup.markup_version.name == "Manual") for markup in self.markups.all()])
 
 
 class MarkupVersion(Model):
     name = CharField("Имя версии разметки", max_length=50, blank=False)
     additional = TextField("Дополнительная ифнормация", blank=True)
-
-    def __str__(self):
-        return str(self.name)
+    is_manual = BooleanField("Ручные разметки?", default=False)
 
     class Meta:
         verbose_name = "Версия разметки"
         verbose_name_plural = "Версии разметки"
 
+    def __str__(self):
+        return str(self.name)
+
+    def count_markups(self):
+        return self.markups.count()
+
 
 class Markup(Model):
-    poem = ForeignKey(Poem, related_name="markup_instances")
+    poem = ForeignKey(Poem, related_name="markups")
     text = TextField("Слоговая разметка по ударениям", blank=True, default="")
     author = CharField("Автор разметки", max_length=50, blank=False)
     additional = TextField("Дополнительная ифнормация", blank=True)
-    markup_version = ForeignKey(MarkupVersion, related_name="instances")
+    markup_version = ForeignKey(MarkupVersion, related_name="markups")
+
+    class Meta:
+        verbose_name = "Экзепляр разметки"
+        verbose_name_plural = "Экзепляры разметки"
 
     def __str__(self):
         return 'Разметка' + str(self.poem.name) + " " + str(self.markup_version) + " " + str(self.author)
@@ -147,7 +155,3 @@ class Markup(Model):
                 new_value.append(StressCorrection(info['line_number'], info["word_number"],
                                                   info["syllable_number"], info["word_text"], info["accent"]))
             collection[key] = new_value
-
-    class Meta:
-        verbose_name = "Экзепляр разметки"
-        verbose_name_plural = "Экзепляры разметки"

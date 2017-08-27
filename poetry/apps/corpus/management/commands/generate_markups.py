@@ -93,7 +93,7 @@ class Command(BaseCommand):
                                                author="Automatic2", additional=result.to_json(),
                                                markup_version=markup_version)
             else:
-                markup = p.markup_instances.filter(author=author)[0]
+                markup = p.markups.filter(author=author)[0]
                 if xml_writer is not None:
                     xml_writer.write_markup(markup.get_markup())
                 if raw_writer is not None:
