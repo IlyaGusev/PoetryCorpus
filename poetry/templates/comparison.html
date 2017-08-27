@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% load static from staticfiles %}
+{% block custom_head %}
+<script src="{% static 'js/poem.js' %}"></script>
+{% endblock %}
 {% block accents_active %} class="active" {% endblock %}
 {% block content %}
 <div class="page-header">
@@ -31,6 +35,7 @@
         {% if comparisons|length > 1 %}
             <p><b>Средняя точность:</b> {{ avg_accuracy|floatformat:3 }}</p>
             <p><b>Средняя F-мера:</b> {{ avg_f1|floatformat:3 }}</p>
+            <a class="btn btn-warning compare-csv">Скачать CSV</a>
         {% endif %}
     </div>
 </div>

@@ -4,6 +4,7 @@
 <script src="{% static 'js/ajax.csrf.js' %}"></script>
 <script src="{% static 'js/poem.js' %}"></script>
 {% endblock %}
+{% block versions_active %} class="active" {% endblock %}
 {% block content %}
 <div class="page-header">
     <h3>Версии разметок</h3>
@@ -31,6 +32,7 @@
             </table>
         </div>
         <button class="btn btn-default compare-versions disabled">Сравнить</button>
+        <button class="btn btn-default export-versions disabled">Экспорт</button>
     </div>
     {% include "pagination.html" %}
 </div>

@@ -1,3 +1,14 @@
+function getQueryVariable(variable) {
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i=0;i<vars.length;i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] == variable) {
+            return pair[1];
+        }
+    }
+}
+
 $(function() {
     $(document).ready(function(){
         VOWELS = "aeiouAEIOUаоэиуыеёюяАОЭИУЫЕЁЮЯ";
@@ -42,7 +53,6 @@ $(function() {
                 $(this).addClass('default');
                 addToSet(id);
             }
-            console.log(diffs)
         });
 
         $(".markup-selector").ready(function() {
@@ -101,22 +111,6 @@ $(function() {
             });
         });
 
-        var selected_version = [];
-        $('#versions').on('click','.version-select',function(){
-            var id = $(this)[0].id;
-            if ($(this)[0].checked) {
-                selected_version.push(id);
-            } else {
-                selected_version.splice(selected_version.indexOf(id), 1);
-            }
-            var compareButton = $('.compare-versions');
-            if( selected_version.length == 2 ) {
-                compareButton.removeClass("disabled")
-            } else if( !compareButton.hasClass("disabled") ){
-                compareButton.addClass("disabled")
-            }
-        });
-
         $(document).on('click', '.compare-versions', function(){
             if( $(this).hasClass("disabled") ) {
                 return;
@@ -134,6 +128,66 @@ $(function() {
                     console.log(error)
                 }
             });
+        });
+
+        $(document).on('click','.compare-csv',function(){
+            var standard_pk = getQueryVariable("standard");
+            var test_pk = getQueryVariable("test");
+            var href = "/corpus/comparison_csv?test=" + test_pk + "&standard=" + standard_pk;
+            $.ajax({
+                type: 'GET',
+                url: window.location.href,
+                success: function(response) {
+                    window.location.replace(href)
+                },
+                error: function(request, status, error) {
+                    console.log(error)
+                }
+            });
+        });
+
+        var selected_version = [];
+        $('#versions').on('click','.version-select',function(){
+            var id = $(this)[0].id;
+            if ($(this)[0].checked) {
+                selected_version.push(id);
+            } else {
+                selected_version.splice(selected_version.indexOf(id), 1);
+            }
+            var compareButton = $('.compare-versions');
+            if( selected_version.length == 2 ) {
+                compareButton.removeClass("disabled")
+            } else if( !compareButton.hasClass("disabled") ){
+                compareButton.addClass("disabled")
+            }
+
+            var exportButton = $('.export-versions');
+            if( selected_version.length != 0 ) {
+                exportButton.removeClass("disabled")
+            } else if( !exportButton.hasClass("disabled") ){
+                exportButton.addClass("disabled")
+            }
+        });
+
+        $(document).on('click', '.export-versions', function(){
+            if( $(this).hasClass("disabled") ) {
+                return;
+            }
+            for (var i = 0; i < selected_version.length; i++) {
+                var version_pk = selected_version[i];
+                var href = "/corpus/export_version/" + version_pk;
+                $.ajax({
+                    type: 'GET',
+                    url: window.location.href,
+                    success: function(response) {
+                        window.location.replace(href)
+                    },
+                    error: function(request, status, error) {
+                        console.log(error)
+                    }
+                });
+            }
+
         });
     });
 });

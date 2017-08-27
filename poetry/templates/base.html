@@ -43,6 +43,9 @@
                     <li {% block poems_active %} {% endblock %}>
                         <a href="{% url 'corpus:poems' %}?page=1">Корпус</a>
                     </li>
+                    <li {% block versions_active %} {% endblock %}>
+                        <a href="{% url 'corpus:versions' %}?page=1">Версии разметок</a>
+                    </li>
                     <li {% block search_active %} {% endblock %}>
                         <a href="{% url 'corpus:search:haystack_search' %}">Поиск</a>
                     </li>

@@ -1,6 +1,9 @@
 from collections import namedtuple
 from typing import List
-from django.views.generic import TemplateView
+
+from django.views.generic import TemplateView, View
+from django.http import HttpResponse
+from braces.views import LoginRequiredMixin, GroupRequiredMixin
 
 from poetry.apps.corpus.models import Poem, MarkupVersion
 from rupo.main.markup import Markup
@@ -56,8 +59,16 @@ def get_comparison(poem, standard_pk, test_pk):
                       precision=precision, recall=recall, f1=f1)
 
 
-class ComparisonView(TemplateView):
+def get_all_comparisons(standard_pk, test_pk):
+    standard_markup_version = MarkupVersion.objects.get(pk=standard_pk)
+    poems = list(set([markup.poem for markup in standard_markup_version.markups.filter(
+        poem__markups__markup_version=test_pk)]))
+    return [get_comparison(poem, standard_pk, test_pk) for poem in poems]
+
+
+class ComparisonView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     template_name = 'comparison.html'
+    group_required = "Approved"
 
     def get_context_data(self, **kwargs):
         context = super(ComparisonView, self).get_context_data(**kwargs)
@@ -66,13 +77,33 @@ class ComparisonView(TemplateView):
         document_pk = self.request.GET.get("document", None)
 
         if document_pk is None:
-            standard_markup_version = MarkupVersion.objects.get(pk=standard_pk)
-            poems = list(set([markup.poem for markup in
-                              standard_markup_version.markups.filter(poem__markups__markup_version=test_pk)]))
-            comparisons = [get_comparison(poem, standard_pk, test_pk) for poem in poems]
+            comparisons = get_all_comparisons(standard_pk, test_pk)
         else:
             comparisons = [get_comparison(Poem.objects.get(pk=document_pk), standard_pk, test_pk)]
         context["comparisons"] = comparisons
         context["avg_accuracy"] = sum([comparison.accuracy for comparison in comparisons])/len(comparisons)
         context["avg_f1"] = sum([comparison.f1 for comparison in comparisons]) / len(comparisons)
         return context
+
+
+class ComparisonCSVView(LoginRequiredMixin, GroupRequiredMixin, View):
+    group_required = "Approved"
+
+    def get(self, request, *args, **kwargs):
+        standard_pk = int(request.GET["standard"])
+        test_pk = int(request.GET["test"])
+        response = HttpResponse()
+        comparisons = get_all_comparisons(standard_pk, test_pk)
+        content = "poem,test,standard,accuracy,precision,recall,f1\n"
+        for comparison in comparisons:
+            content += ",".join([comparison.poem.name.replace(",", ""),
+                                 comparison.test.author.replace(",", ""),
+                                 comparison.standard.author.replace(",", ""),
+                                 "{:.3f}".format(comparison.accuracy),
+                                 "{:.3f}".format(comparison.precision),
+                                 "{:.3f}".format(comparison.recall),
+                                 "{:.3f}".format(comparison.f1)]) + "\n"
+        response.content = content
+        response["Content-Disposition"] = "attachment; filename={0}".format(
+            "comparison" + str(standard_pk) + "-" + str(test_pk) + ".csv")
+        return response
