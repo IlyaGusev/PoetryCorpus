@@ -12,6 +12,7 @@ install:
 - pip install --only-binary=numpy,scipy numpy scipy
 - pip install -r requirements.txt
 script:
+- sh download.sh
 - python3 manage.py migrate
 - python3 manage.py loaddata datasets/django/themes_django.json
 - python3 manage.py loaddata datasets/django/all_django.json
