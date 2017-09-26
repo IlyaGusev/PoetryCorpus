@@ -12,8 +12,10 @@ from rupo.files.writer import Writer, FileType
 from rupo.main.markup import Markup
 from rupo.api import Engine
 
-STRESS_MODEL = "/home/yallen/Документы/Python/rupo/rupo/data/stress_models/stress_ru_LSTM64_dropout0.2_acc99_wer8.h5"
-STRESS_TRIE = "/home/yallen/Документы/Python/rupo/rupo/data/dict/ru_grapheme_stress.trie"
+STRESS_MODEL = "./data/stress_models/stress_ru_LSTM64_dropout0.2_acc99_wer8.h5"
+ZALYZNYAK_DICT = "./data/dict/zaliznyak.txt"
+TRIE_PATH = "./data/dict/stress.trie"
+RAW_DICT_PATH = "./data/dict/stress_raw_dict.txt"
 
 
 class Command(BaseCommand):
@@ -78,8 +80,8 @@ class Command(BaseCommand):
             raw_writer = Writer(FileType.RAW, raw_path)
             raw_writer.open()
         i = 0
-        stress_predictor = engine.get_stress_predictor(stress_model_path=STRESS_MODEL,
-                                                       stress_trie_path=STRESS_TRIE)
+        stress_predictor = engine.get_stress_predictor(stress_model_path=STRESS_MODEL, zalyzniak_dict=ZALYZNYAK_DICT,
+                                                       stress_trie_path=TRIE_PATH, raw_stress_dict_path=RAW_DICT_PATH)
         for p in poems:
             if "Automatic" in author:
                 markup = Markup.process_text(p.text, stress_predictor)
