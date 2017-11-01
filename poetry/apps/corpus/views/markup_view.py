@@ -69,7 +69,7 @@ class MarkupView(DetailView):
                 w = int(diff.split('-')[1])
                 s = int(diff.split('-')[2])
                 syllable = markup.lines[l].words[w].syllables[s]
-                if syllable.stess != -1:
+                if syllable.stress != -1:
                     syllable.stress = -1
                 else:
                     for i in range(len(syllable.text)):
