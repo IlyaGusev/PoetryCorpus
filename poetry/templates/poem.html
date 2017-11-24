@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block analysis_active %} class="active" {% endblock %}
+{% block custom_head %}
+    <script src="{% static 'lib/mousetrap/mousetrap.min.js' %}"></script>
+    <script src="{% static 'js/poem.js' %}"></script>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h3>{{ poem.author }} - {{ poem.name }}</h3>
+</div>
+<div class="row" >
+    <a class="btn btn-md btn-default" href="{% url 'corpus:markup' pk=poem.markups.all.0.pk %}" id="to-markups-button">Перейти к разметкам</a>
+    <a class="btn btn-md btn-danger" id="edit-button">Редактировать</a>
+    <a class="btn btn-md btn-info" href="{% url 'corpus:poem' pk=prev_pk %}" id="prev-button">Предыдущее</a>
+    <a class="btn btn-md btn-success" href="{% url 'corpus:poem' pk=next_pk %}" id="next-button">Следующее</a>
+</div>
+<div class="row" style="padding-top:20px;">
+    <div class="col-lg-12 bigger-letters plain-text">
+        {{ poem.text|linebreaksbr }}
+    </div>
+    <div class="col-lg-6 bigger-letters edit-plain-text hidden">
+        <form>
+            <textarea class="form-control mousetrap" rows="30" id="edit-text-field" name="text" style="overflow:auto;resize:none">{{ poem.text}}</textarea>
+            <div style="padding-top:20px;">
+                <button class="btn btn-md btn-danger" type="submit" id="save-button">Сохранить</button>
+                <button class="btn btn-md btn-primary" id="cancel-button">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% csrf_token %}
+{% endblock %}

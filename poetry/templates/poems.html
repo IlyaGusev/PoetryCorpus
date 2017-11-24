@@ -19,7 +19,7 @@
                 {% for poem in poems %}
                 <tr>
                     <td>{{ poem.author }}</td>
-                    <td><a href="{% url 'corpus:markup' pk=poem.markups.all.0.pk %}">{{ poem.name }}</a></td>
+                    <td><a href="{% url 'corpus:poem' pk=poem.pk %}">{{ poem.name }}</a></td>
                     <td class="text-center">{{ poem.count_lines}}</td>
                     <td class="text-center">{{ poem.count_automatic_errors }}</td>
                     <td class="text-center">{% if poem.count_manual_markups != 0 %}
