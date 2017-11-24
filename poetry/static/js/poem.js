@@ -18,7 +18,6 @@ $(function() {
     });
 
     Mousetrap.bind('shift+enter', function() {
-        console.log("!!!");
         if( $(".edit-plain-text").hasClass("hidden") ) {
             var editButton = document.getElementById("edit-button");
             editButton.click();

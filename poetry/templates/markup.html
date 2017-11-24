@@ -2,6 +2,7 @@
 {% load static from staticfiles %}
 {% block custom_head %}
 <script src="{% static 'js/ajax.csrf.js' %}"></script>
+<script src="{% static 'lib/mousetrap/mousetrap.min.js' %}"></script>
 <script src="{% static 'js/markup.js' %}"></script>
 {% endblock %}
 {% block content %}
@@ -19,16 +20,16 @@
 <p style="font-size: 15px;">Кликайте по слогами, чтобы менять ударение</p>
 {% include "accented.html" with text=text %}
 
-{% if user.is_authenticated %}
+
 <div style="padding-top:20px;">
-    <button class="btn btn-md btn-default send-markup">Отправить разметку</button>
-</div>
-{% endif %}
-{% if not user.is_authenticated  %}
-<div>
+    {% if user.is_authenticated %}
+    <button class="btn btn-md btn-primary send-markup">Отправить разметку</button>
+    {% endif %}
+    {% if not user.is_authenticated  %}
     <p style="font-size: 15px;">Только авторизованные пользователи могут добавлять разметку.</p>
+    {% endif %}
+    <a class="btn btn-md btn-primary" href="{% url 'corpus:poem' pk=poem.pk %}" id="to-text-button">Назад к тексту</a>
 </div>
-{% endif %}
 </div>
 
 <div class="col-lg-3">

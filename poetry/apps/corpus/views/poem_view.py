@@ -33,7 +33,7 @@ class PoemView(DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated() and request.user.is_superuser():
             text = request.POST.get('text')
             poem = self.get_object()
             poem.text = text

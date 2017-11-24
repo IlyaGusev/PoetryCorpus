@@ -13,6 +13,45 @@ $(function() {
     $(document).ready(function(){
         VOWELS = "aeiouAEIOUаоэиуыеёюяАОЭИУЫЕЁЮЯ";
         var diffs = {};
+        var activeSylIndex = 0;
+        var syllables = $('.syllable');
+        syllables[0].style.border = "3px solid red";
+
+        Mousetrap.bind('enter', function() {
+            var syllable = $('.syllable')[activeSylIndex];
+            syllable.click();
+            return false;
+        });
+
+        Mousetrap.bind('right', function() {
+            if( activeSylIndex < syllables.length - 1 ) {
+                syllables[activeSylIndex].style.border = "none";
+                activeSylIndex += 1;
+                syllables[activeSylIndex].style.border = "3px solid red";
+            }
+            return false;
+        });
+
+        Mousetrap.bind('left', function() {
+            if( activeSylIndex > 0 ) {
+                syllables[activeSylIndex].style.border = "none";
+                activeSylIndex -= 1;
+                syllables[activeSylIndex].style.border = "3px solid red";
+            }
+            return false;
+        });
+
+        Mousetrap.bind('ctrl+s', function() {
+            var sendButton = $('.send-markup');
+            sendButton.click();
+            return false;
+        });
+
+        Mousetrap.bind('backspace', function() {
+            var toTextButton = document.getElementById("to-text-button");
+            toTextButton.click();
+            return false;
+        });
 
         addToSet = function(id) {
             if (!diffs[id]) {
