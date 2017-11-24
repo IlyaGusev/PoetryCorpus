@@ -16,4 +16,5 @@ script:
 - python3 manage.py migrate
 - python3 manage.py loaddata datasets/django/themes_django.json
 - python3 manage.py loaddata datasets/django/all_django.json
+- python3 manage.py generate_markups --db --to 100
 - python3 manage.py test
