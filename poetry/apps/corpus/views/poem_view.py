@@ -1,7 +1,8 @@
-from django.views.generic import DetailView
+from django.views.generic import DetailView, View
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
+from django.views.generic.detail import SingleObjectMixin
 
 from poetry.apps.corpus.models import Poem
 
@@ -33,12 +34,25 @@ class PoemView(DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        if request.user.is_authenticated() and request.user.is_superuser():
+        if request.user.is_authenticated() and request.user.is_superuser:
             text = request.POST.get('text')
             poem = self.get_object()
             poem.text = text
+            poem.is_standard = False
             poem.save()
-            return JsonResponse({'url': reverse('corpus:poem', kwargs={'pk': poem.pk}),},
-                                status=200)
+            return JsonResponse({'url': reverse('corpus:poem', kwargs={'pk': poem.pk}), }, status=200)
+        else:
+            raise PermissionDenied
+
+
+class PoemMakeStandardView(View, SingleObjectMixin):
+    model = Poem
+
+    def post(self, request, *args, **kwargs):
+        if request.user.is_authenticated() and request.user.is_superuser:
+            poem = self.get_object()
+            poem.is_standard = True
+            poem.save()
+            return JsonResponse({'url': reverse('corpus:poem', kwargs={'pk': poem.pk}), }, status=200)
         else:
             raise PermissionDenied

@@ -62,4 +62,22 @@ $(function() {
         });
         return false;
     });
+
+    $(document).on('click', '#poem-make-standard', function(){
+        console.log(this.href)
+        $.ajax({
+            type: 'POST',
+            url: this.href,
+            data: {
+                'csrfmiddlewaretoken': $("input[name='csrfmiddlewaretoken']").val()
+            },
+            success: function(response) {
+                window.location.replace(response.url)
+            },
+            error: function(request, status, error) {
+                console.log(error)
+            }
+        });
+        return false;
+    });
 });

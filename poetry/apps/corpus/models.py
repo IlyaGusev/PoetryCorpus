@@ -26,6 +26,7 @@ class Poem(Model):
     date_to = IntegerField("Дата написания - второй год", blank=True, null=True)
     themes = ManyToManyField(Theme, verbose_name="Темы", related_name="poems", blank=True)
     is_restricted = BooleanField("Стихи с ограниченным доступом", default=False)
+    is_standard = BooleanField("Эталонные (проверенные) стихи", default=False)
 
     class Meta:
         verbose_name = "Стихотворение"
@@ -118,6 +119,7 @@ class Markup(Model):
     author = CharField("Автор разметки", max_length=50, blank=False)
     additional = TextField("Дополнительная ифнормация", blank=True)
     markup_version = ForeignKey(MarkupVersion, related_name="markups")
+    is_standard = BooleanField("Эталонная (проверенная) разметка", default=False)
 
     class Meta:
         verbose_name = "Экзепляр разметки"

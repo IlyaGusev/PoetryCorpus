@@ -1,7 +1,8 @@
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
-from django.views.generic import DetailView
+from django.views.generic import DetailView, View
+from django.views.generic.detail import SingleObjectMixin
 
 from poetry.apps.corpus.models import Markup, MarkupVersion
 from rupo.main.markup import Markup as TextMarkup
@@ -87,3 +88,18 @@ class MarkupView(DetailView):
         else:
             raise PermissionDenied
 
+
+class MarkupMakeStandardView(View, SingleObjectMixin):
+    model = Markup
+
+    def post(self, request, *args, **kwargs):
+        if request.user.is_authenticated() and request.user.is_superuser:
+            markup = self.get_object()
+            for m in markup.poem.markups.all():
+                m.is_standard = False
+                m.save()
+            markup.is_standard = True
+            markup.save()
+            return JsonResponse({'url': reverse('corpus:markup', kwargs={'pk': markup.pk}), }, status=200)
+        else:
+            raise PermissionDenied
