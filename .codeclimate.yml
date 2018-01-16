@@ -16,4 +16,6 @@ engines:
 ratings:
   paths:
   - "**.py"
-exclude_paths: []
+exclude_paths: [
+  "poetry/static/lib/"
+]
