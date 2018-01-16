@@ -17,5 +17,6 @@ ratings:
   paths:
   - "**.py"
 exclude_paths: [
-  "poetry/static/lib/"
+  "poetry/static/lib/",
+  "poetry/apps/corpus/migrations/"
 ]
