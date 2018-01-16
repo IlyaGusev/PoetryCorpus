@@ -23,11 +23,20 @@
 
 <div style="padding-top:20px;">
     {% if user.is_authenticated %}
-    <button class="btn btn-md btn-primary send-markup">Отправить разметку</button>
+    <button class="btn btn-md btn-warning send-markup">Сохранить разметку</button>
+    {% endif %}
+    {% if user.is_authenticated and user.is_superuser and markup.markup_version.is_manual %}
+        <a class="btn btn-md btn-danger delete-view" href="{% url 'corpus:markup_delete' pk=markup.pk %}" id="delete-button">Удалить</a>
+    {% endif %}
+    {% if user.is_authenticated and user.is_superuser and markup.markup_version.is_manual and not markup.is_standard %}
+        <a class="btn btn-md btn-success" href="{% url 'corpus:markup_make_standard' pk=markup.pk %}" id="markup-make-standard">Пометить как эталонную</a>
     {% endif %}
     {% if not user.is_authenticated  %}
     <p style="font-size: 15px;">Только авторизованные пользователи могут добавлять разметку.</p>
     {% endif %}
+</div>
+
+<div style="padding-top:20px;">
     <a class="btn btn-md btn-primary" href="{% url 'corpus:poem' pk=poem.pk %}" id="to-text-button">Назад к тексту</a>
 </div>
 </div>

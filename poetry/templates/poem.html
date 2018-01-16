@@ -31,13 +31,13 @@
 </div>
 <div class="row" >
     {%  if poem.markups.all|length != 0 %}
-    <a class="btn btn-md btn-success" href="{% url 'corpus:markup' pk=poem.markups.all.0.pk %}" id="to-markups-button">Перейти к разметкам</a>
+    <a class="btn btn-md btn-primary" href="{% url 'corpus:markup' pk=poem.markups.all.0.pk %}" id="to-markups-button">Перейти к разметкам</a>
     {%  endif  %}
     {% if can_edit %}
     <a class="btn btn-md btn-warning" id="edit-button">Редактировать</a>
     <a class="btn btn-md btn-danger delete-view" id="delete-button" href="{% url 'corpus:poem_delete' poem.pk %}">Удалить</a>
     {% if not poem.is_standard %}
-        <a class="btn btn-md btn-success" href="{% url 'corpus:poem_make_standard' pk=poem.pk %}" id="poem-make-standard">Текст проверен</a>
+        <a class="btn btn-md btn-success" href="{% url 'corpus:poem_make_standard' pk=poem.pk %}" id="poem-make-standard">Пометить как проверенное</a>
     {% endif %}
     {% endif %}
 </div>

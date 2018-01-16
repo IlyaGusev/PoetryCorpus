@@ -1,8 +1,10 @@
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import JsonResponse
-from django.views.generic import DetailView, View
+from django.views.generic import DetailView, View, DeleteView
 from django.views.generic.detail import SingleObjectMixin
+
+from braces.views import LoginRequiredMixin, GroupRequiredMixin
 
 from poetry.apps.corpus.models import Markup, MarkupVersion
 from rupo.main.markup import Markup as TextMarkup
@@ -78,19 +80,22 @@ class MarkupView(DetailView):
                             syllable.stress = syllable.begin + i
 
             m = Markup()
+            if Markup.objects.filter(author=request.user.email, poem=poem).exists():
+                m = Markup.objects.filter(author=request.user.email, poem=poem)[0]
             m.text = markup.to_json()
             m.author = request.user.email
             m.poem = poem
             m.markup_version = MarkupVersion.objects.get(name="Manual")
             m.save()
-            return JsonResponse({'url': reverse('corpus:markup', kwargs={'pk': m.pk}),},
-                                status=200)
+            return JsonResponse({'url': reverse('corpus:markup', kwargs={'pk': m.pk}),}, status=200)
         else:
             raise PermissionDenied
 
 
-class MarkupMakeStandardView(View, SingleObjectMixin):
+class MarkupMakeStandardView(LoginRequiredMixin, GroupRequiredMixin, View, SingleObjectMixin):
     model = Markup
+    group_required = "Approved"
+    raise_exception = True
 
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated() and request.user.is_superuser:
@@ -103,3 +108,10 @@ class MarkupMakeStandardView(View, SingleObjectMixin):
             return JsonResponse({'url': reverse('corpus:markup', kwargs={'pk': markup.pk}), }, status=200)
         else:
             raise PermissionDenied
+
+
+class MarkupDeleteView(LoginRequiredMixin, GroupRequiredMixin, DeleteView):
+    model = Markup
+    group_required = "Approved"
+    success_url = reverse_lazy('corpus:poems')
+    raise_exception = True

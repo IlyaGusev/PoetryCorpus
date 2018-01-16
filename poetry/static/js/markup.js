@@ -53,6 +53,11 @@ $(function() {
             return false;
         });
 
+        Mousetrap.bind('del', function() {
+             var deleteButton = document.getElementById("delete-button");
+             deleteButton.click();
+        });
+
         addToSet = function(id) {
             if (!diffs[id]) {
                 diffs[id] = true

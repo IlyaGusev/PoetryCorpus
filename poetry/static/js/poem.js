@@ -29,6 +29,11 @@ $(function() {
         return false;
     });
 
+     Mousetrap.bind('del', function() {
+         var deleteButton = document.getElementById("delete-button");
+         deleteButton.click();
+    });
+
     $(document).on('click', '#edit-button', function(){
         $("#edit-button").addClass("hidden");
         $(".plain-text").addClass("hidden");
@@ -105,22 +110,11 @@ $(function() {
         });
 	});
 
-    $("body").on("click", ".delete-view", function(ev) {
-        ev.preventDefault();
-        var button = $(this);
-        var URL = button.attr('href');
-        $.ajax({type: "POST", url: URL, data: {}, dataType: "JSON"});
-        window.location.replace("/corpus/poem_list")
-    });
-
     $(document).on('click', '#poem-make-standard', function(){
-        console.log(this.href)
         $.ajax({
             type: 'POST',
             url: this.href,
-            data: {
-                'csrfmiddlewaretoken': $("input[name='csrfmiddlewaretoken']").val()
-            },
+            data: {},
             success: function(response) {
                 window.location.replace(response.url)
             },

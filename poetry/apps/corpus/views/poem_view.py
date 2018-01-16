@@ -1,9 +1,8 @@
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic import View, UpdateView, DeleteView
-from django.core.urlresolvers import reverse_lazy
 
 from braces.views import LoginRequiredMixin, GroupRequiredMixin
 
@@ -11,7 +10,7 @@ from poetry.apps.corpus.models import Poem
 from poetry.apps.corpus.forms import PoemForm
 
 
-class PoemView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
+class PoemView(UpdateView):
     model = Poem
     template_name = 'poem.html'
     context_object_name = 'poem'
@@ -40,17 +39,6 @@ class PoemView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
         context['prev_pk'] = prev_pk if prev_pk is not None else poem.pk
         context['can_edit'] = self.request.user.is_superuser
         return context
-
-    def post(self, request, *args, **kwargs):
-        if request.user.is_authenticated() and request.user.is_superuser:
-            text = request.POST.get('text')
-            poem = self.get_object()
-            poem.text = text
-            poem.is_standard = False
-            poem.save()
-            return JsonResponse({'url': reverse('corpus:poem', kwargs={'pk': poem.pk}), }, status=200)
-        else:
-            raise PermissionDenied
 
 
 class PoemMakeStandardView(View, SingleObjectMixin):
