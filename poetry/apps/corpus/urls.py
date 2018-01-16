@@ -6,6 +6,7 @@ from poetry.apps.corpus.views.markup_view import MarkupView, MarkupMakeStandardV
 from poetry.apps.corpus.views.version_list_view import MarkupVersionListView
 from poetry.apps.corpus.views.version_export_view import MarkupVersionExportView
 from poetry.apps.corpus.views.poem_view import PoemView, PoemMakeStandardView
+from poetry.apps.corpus.views.poem_view import PoemView, PoemDeleteView
 
 urlpatterns = [
     url(r'^poem_list/', PoemsListView.as_view(), name='poems'),
@@ -13,6 +14,7 @@ urlpatterns = [
     url(r'^export_version/(?P<pk>[0-9]*)/$', MarkupVersionExportView.as_view(), name='export_version'),
     url(r'^poems/(?P<pk>[0-9]*)/$', PoemView.as_view(), name="poem"),
     url(r'^poems/(?P<pk>[0-9]*)/make_standard$', PoemMakeStandardView.as_view(), name="poem_make_standard"),
+    url(r'^poems/(?P<pk>[0-9]*)/delete$', PoemDeleteView.as_view(), name="poem_delete"),
     url(r'^markups/(?P<pk>[0-9]*)/$', MarkupView.as_view(), name="markup"),
     url(r'^markups/(?P<pk>[0-9]*)/make_standard$', MarkupMakeStandardView.as_view(), name="markup_make_standard"),
     url(r'^search/', include('haystack.urls', namespace="search")),

@@ -7,36 +7,59 @@
 {% endblock %}
 {% block content %}
 <div class="page-header">
-    <h3>{{ poem.author }} - {{ poem.name }}</h3>
+    <h3 class="poem-name">
+        {% if can_edit %}
+        <span id="author">
+            {{ poem.author }}
+            <a href="#" class="light"><i class="fa fa-pencil" id="author-pencil"></i></a>
+        </span>
+        <span id="author-edit" class="hidden">
+            <input id="author-field" type="text" value="{{ poem.author }}"/>
+        </span>
+            -
+        <span id="name">
+            {{ poem.name }}
+            <a href="#" class="light"><i class="fa fa-pencil" id="name-pencil"></i></a>
+        </span>
+         <span id="name-edit" class="hidden">
+            <input id="name-field" type="text" value="{{ poem.name }}"/>
+        </span>
+        {% else %}
+        {{ poem.author }} - {{ poem.name }}</h3>
+        {% endif %}
+    </h3>
 </div>
 <div class="row" >
     {%  if poem.markups.all|length != 0 %}
-        <a class="btn btn-md btn-info" href="{% url 'corpus:markup' pk=poem.markups.all.0.pk %}" id="to-markups-button">Перейти к разметкам</a>
+    <a class="btn btn-md btn-success" href="{% url 'corpus:markup' pk=poem.markups.all.0.pk %}" id="to-markups-button">Перейти к разметкам</a>
     {%  endif  %}
-    {% if request.user.is_superuser %}
-        <a class="btn btn-md btn-danger" id="edit-button">Редактировать</a>
-    {% endif %}
-        <a class="btn btn-md btn-primary" href="{% url 'corpus:poem' pk=prev_pk %}" id="prev-button">Предыдущее</a>
-        <a class="btn btn-md btn-primary" href="{% url 'corpus:poem' pk=next_pk %}" id="next-button">Следующее</a>
-    {% if request.user.is_superuser and not poem.is_standard %}
+    {% if can_edit %}
+    <a class="btn btn-md btn-warning" id="edit-button">Редактировать</a>
+    <a class="btn btn-md btn-danger delete-view" id="delete-button" href="{% url 'corpus:poem_delete' poem.pk %}">Удалить</a>
+    {% if not poem.is_standard %}
         <a class="btn btn-md btn-success" href="{% url 'corpus:poem_make_standard' pk=poem.pk %}" id="poem-make-standard">Текст проверен</a>
+    {% endif %}
     {% endif %}
 </div>
 <div class="row" style="padding-top:20px;">
     <div class="col-lg-12 bigger-letters plain-text">
         {{ poem.text|linebreaksbr }}
     </div>
-    {% if request.user.is_superuser %}
+    {% if can_edit %}
     <div class="col-lg-6 bigger-letters edit-plain-text hidden">
         <form>
             <textarea class="form-control mousetrap" rows="30" id="edit-text-field" name="text" style="overflow:auto;resize:none">{{ poem.text}}</textarea>
             <div style="padding-top:20px;">
-                <button class="btn btn-md btn-danger" type="submit" id="save-button">Сохранить</button>
-                <button class="btn btn-md btn-primary" id="cancel-button">Отмена</button>
+                <button class="btn btn-md btn-success" type="submit" id="save-button">Сохранить</button>
+                <button class="btn btn-md btn-danger" id="cancel-button">Отмена</button>
             </div>
         </form>
     </div>
     {% endif %}
+</div>
+<div class="row" style="padding-top:20px; padding-bottom: 20px;">
+    <a class="btn btn-md btn-primary" href="{% url 'corpus:poem' pk=prev_pk %}" id="prev-button">Предыдущее</a>
+    <a class="btn btn-md btn-primary" href="{% url 'corpus:poem' pk=next_pk %}" id="next-button">Следующее</a>
 </div>
 
 {% csrf_token %}

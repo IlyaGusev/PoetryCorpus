@@ -1,16 +1,23 @@
-from django.views.generic import DetailView, View
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
 from django.views.generic.detail import SingleObjectMixin
+from django.views.generic import View, UpdateView, DeleteView
+from django.core.urlresolvers import reverse_lazy
+
+from braces.views import LoginRequiredMixin, GroupRequiredMixin
 
 from poetry.apps.corpus.models import Poem
+from poetry.apps.corpus.forms import PoemForm
 
 
-class PoemView(DetailView):
+class PoemView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     model = Poem
     template_name = 'poem.html'
     context_object_name = 'poem'
+    form_class = PoemForm
+    group_required = "Approved"
+    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super(PoemView, self).get_context_data(**kwargs)
@@ -28,9 +35,10 @@ class PoemView(DetailView):
             prev_pk -= 1
         if not Poem.objects.filter(pk=prev_pk).exists():
             prev_pk = None
-
         context['next_pk'] = next_pk if next_pk is not None else poem.pk
+
         context['prev_pk'] = prev_pk if prev_pk is not None else poem.pk
+        context['can_edit'] = self.request.user.is_superuser
         return context
 
     def post(self, request, *args, **kwargs):
@@ -56,3 +64,10 @@ class PoemMakeStandardView(View, SingleObjectMixin):
             return JsonResponse({'url': reverse('corpus:poem', kwargs={'pk': poem.pk}), }, status=200)
         else:
             raise PermissionDenied
+
+
+class PoemDeleteView(LoginRequiredMixin, GroupRequiredMixin, DeleteView):
+    model = Poem
+    group_required = "Approved"
+    success_url = reverse_lazy('corpus:poems')
+    raise_exception = True
