@@ -231,7 +231,20 @@ $(function() {
                     }
                 });
             }
-
+        });
+        $(document).on('click', '#markup-make-standard', function(){
+            $.ajax({
+                type: 'POST',
+                url: this.href,
+                data: {},
+                success: function(response) {
+                    window.location.replace(response.url)
+                },
+                error: function(request, status, error) {
+                    console.log(error)
+                }
+            });
+            return false;
         });
     });
 });

@@ -100,10 +100,11 @@ class MarkupMakeStandardView(LoginRequiredMixin, GroupRequiredMixin, View, Singl
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated() and request.user.is_superuser:
             markup = self.get_object()
-            for m in markup.poem.markups.all():
-                m.is_standard = False
-                m.save()
+            if not MarkupVersion.objects.filter(name="Standard").exists():
+                MarkupVersion.objects.create(name="Standard", is_manual=True)
+            standard_version = MarkupVersion.objects.get(name="Standard")
             markup.is_standard = True
+            markup.markup_version = standard_version
             markup.save()
             return JsonResponse({'url': reverse('corpus:markup', kwargs={'pk': markup.pk}), }, status=200)
         else:

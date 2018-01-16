@@ -15,8 +15,6 @@ class PoemView(UpdateView):
     template_name = 'poem.html'
     context_object_name = 'poem'
     form_class = PoemForm
-    group_required = "Approved"
-    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super(PoemView, self).get_context_data(**kwargs)
@@ -41,8 +39,10 @@ class PoemView(UpdateView):
         return context
 
 
-class PoemMakeStandardView(View, SingleObjectMixin):
+class PoemMakeStandardView(LoginRequiredMixin, GroupRequiredMixin, View, SingleObjectMixin):
     model = Poem
+    group_required = "Approved"
+    raise_exception = True
 
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated() and request.user.is_superuser:
