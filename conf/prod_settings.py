@@ -27,7 +27,7 @@ SECRET_KEY = '9v*w7em=4nx8to*_%4=9%6f@01_1b6e4h9_7dk0wzk06acsjoh'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["0.0.0.0", "poetry-corpus.ru", "35.157.23.184", "www.poetry-corpus.ru"]
+ALLOWED_HOSTS = ["0.0.0.0", "poetry-corpus.ru", "35.157.23.184", "www.poetry-corpus.ru", "93.175.9.3", "192.168.1.172"]
 
 
 # Application definition

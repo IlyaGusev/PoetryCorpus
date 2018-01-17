@@ -25,6 +25,7 @@ RUN ln -s /conf/supervisor-app.conf /etc/supervisor/conf.d/
 
 RUN pip3 install -r /code/requirements.txt
 
+RUN mkdir -p /code/db
 VOLUME  ["/code/db"]
 EXPOSE 80
 EXPOSE 9200

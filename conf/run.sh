@@ -1,6 +1,5 @@
 #!/bin/bash
 
-mkdir -p /code/db/
 rm /code/poetry/settings.py
 cp /conf/prod_settings.py /code/poetry/settings.py
 chmod 777 /code/poetry/settings.py
