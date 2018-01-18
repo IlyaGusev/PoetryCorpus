@@ -8,14 +8,14 @@ from rupo.metre.metre_classifier import StressCorrection
 
 
 class Theme(Model):
-    theme = CharField("Тема", max_length=50, blank=False)
+    name = CharField("Тема", max_length=50, blank=False)
 
     class Meta:
         verbose_name = "Тема"
         verbose_name_plural = "Темы"
 
     def __str__(self):
-        return 'Тема: ' + str(self.theme)
+        return 'Тема: ' + str(self.name)
 
 
 class Poem(Model):
@@ -115,7 +115,7 @@ class MarkupVersion(Model):
 
 class Markup(Model):
     poem = ForeignKey(Poem, related_name="markups")
-    text = TextField("Слоговая разметка по ударениям", blank=True, default="")
+    data = TextField("Слоговая разметка по ударениям", blank=True, default="")
     author = CharField("Автор разметки", max_length=50, blank=False)
     additional = TextField("Дополнительная ифнормация", blank=True)
     markup_version = ForeignKey(MarkupVersion, related_name="markups")
@@ -133,7 +133,7 @@ class Markup(Model):
 
     def get_markup(self):
         markup = InternalMarkup()
-        markup.from_json(self.text)
+        markup.from_json(self.data)
         return markup
 
     def get_automatic_additional(self):

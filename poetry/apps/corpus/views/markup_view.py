@@ -47,7 +47,7 @@ class MarkupView(DetailView):
         context = super(MarkupView, self).get_context_data(**kwargs)
         markup = self.get_object()
         m = TextMarkup()
-        m.from_json(markup.text)
+        m.from_json(markup.data)
         context['text'] = process_markup(m)
         context['poem'] = markup.poem
         context['poem'].name = markup.poem.get_name()
