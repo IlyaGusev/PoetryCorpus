@@ -91,7 +91,7 @@ class Command(BaseCommand):
                 if raw_writer is not None:
                     raw_writer.write_markup(markup)
                 if db:
-                    ModelMarkup.objects.create(poem=p, text=markup.to_json(),
+                    ModelMarkup.objects.create(poem=p, data=markup.to_json(),
                                                author="Automatic2", additional=result.to_json(),
                                                markup_version=markup_version)
             else:
